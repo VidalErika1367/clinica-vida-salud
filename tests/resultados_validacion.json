@@ -1,0 +1,1351 @@
+{
+  "unit_checks_passed": 76,
+  "http_checks_passed": 336,
+  "total_checks_passed": 412,
+  "http_results": [
+    {
+      "name": "Panel privado exige iniciar sesión",
+      "passed": true
+    },
+    {
+      "name": "Cerrar una sesión ya finalizada devuelve al inicio",
+      "passed": true
+    },
+    {
+      "name": "Formulario sin token válido rechazado",
+      "passed": true
+    },
+    {
+      "name": "Registro de paciente completo",
+      "passed": true
+    },
+    {
+      "name": "Alterar rol_id en el registro público no crea un administrador",
+      "passed": true
+    },
+    {
+      "name": "Cuenta vinculada a un único paciente",
+      "passed": true
+    },
+    {
+      "name": "CI duplicado rechazado",
+      "passed": true
+    },
+    {
+      "name": "Un CI repetido no deja una cuenta parcial",
+      "passed": true
+    },
+    {
+      "name": "Correo repetido con mayúsculas rechazado",
+      "passed": true
+    },
+    {
+      "name": "Formulario inválido no devuelve la contraseña al navegador",
+      "passed": true
+    },
+    {
+      "name": "Intento de inyección en acceso rechazado",
+      "passed": true
+    },
+    {
+      "name": "Ingreso por correo sin distinguir mayúsculas",
+      "passed": true
+    },
+    {
+      "name": "Identificador de sesión cambia después de ingresar",
+      "passed": true
+    },
+    {
+      "name": "Cookie de sesión HttpOnly y SameSite",
+      "passed": true
+    },
+    {
+      "name": "Panel muestra el paciente autenticado",
+      "passed": true
+    },
+    {
+      "name": "Las páginas privadas no se almacenan en caché",
+      "passed": true
+    },
+    {
+      "name": "Paciente sin acceso a administración de usuarios",
+      "passed": true
+    },
+    {
+      "name": "Paciente no edita una cuenta usando su identificador",
+      "passed": true
+    },
+    {
+      "name": "Paciente no consulta la matriz administrativa",
+      "passed": true
+    },
+    {
+      "name": "Una petición GET no cierra la sesión",
+      "passed": true
+    },
+    {
+      "name": "Cerrar sesión invalida el acceso anterior",
+      "passed": true
+    },
+    {
+      "name": "Acceso rechaza contraseñas mayores de 72 bytes",
+      "passed": true
+    },
+    {
+      "name": "Inicio de sesión del administrador",
+      "passed": true
+    },
+    {
+      "name": "Administrador consulta roles y permisos",
+      "passed": true
+    },
+    {
+      "name": "Administrador consulta usuarios",
+      "passed": true
+    },
+    {
+      "name": "Administrador crea cuenta de recepcionista",
+      "passed": true
+    },
+    {
+      "name": "Recepcionista inicia sesión y accede a su panel",
+      "passed": true
+    },
+    {
+      "name": "Recepcionista no accede a administración de usuarios",
+      "passed": true
+    },
+    {
+      "name": "Administrador crea cuenta de medico",
+      "passed": true
+    },
+    {
+      "name": "Medico inicia sesión y accede a su panel",
+      "passed": true
+    },
+    {
+      "name": "Medico no accede a administración de usuarios",
+      "passed": true
+    },
+    {
+      "name": "No se deshabilita al último administrador",
+      "passed": true
+    },
+    {
+      "name": "No se cambia el rol del último administrador",
+      "passed": true
+    },
+    {
+      "name": "Matriz incluye versión para evitar sobrescribir otra edición",
+      "passed": true
+    },
+    {
+      "name": "El formulario conserva los permisos administrativos fijos",
+      "passed": true
+    },
+    {
+      "name": "No se guarda la matriz sin protección CSRF",
+      "passed": true
+    },
+    {
+      "name": "Paciente no modifica la matriz mediante POST",
+      "passed": true
+    },
+    {
+      "name": "Recepcionista no modifica la matriz mediante POST",
+      "passed": true
+    },
+    {
+      "name": "Medico no modifica la matriz mediante POST",
+      "passed": true
+    },
+    {
+      "name": "Administrador guarda un cambio válido de permisos",
+      "passed": true
+    },
+    {
+      "name": "El permiso retirado queda guardado en PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU01 bloquea el formulario de registro público",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU01 también bloquea el envío directo de un registro",
+      "passed": true
+    },
+    {
+      "name": "Un formulario antiguo no sobrescribe permisos guardados después",
+      "passed": true
+    },
+    {
+      "name": "Administrador vuelve a habilitar el permiso y restaura la matriz",
+      "passed": true
+    },
+    {
+      "name": "El registro público vuelve a estar disponible al habilitar CU01",
+      "passed": true
+    },
+    {
+      "name": "Cada cambio de permiso conserva responsable y evento de auditoría",
+      "passed": true
+    },
+    {
+      "name": "No se elimina el último acceso a la administración de permisos",
+      "passed": true
+    },
+    {
+      "name": "No se concede gestión de usuarios al rol Paciente mediante datos manipulados",
+      "passed": true
+    },
+    {
+      "name": "Una matriz incompleta se rechaza sin modificar los permisos existentes",
+      "passed": true
+    },
+    {
+      "name": "Un permiso desconocido es rechazado",
+      "passed": true
+    },
+    {
+      "name": "Guardar sin cambios conserva la matriz y los accesos",
+      "passed": true
+    },
+    {
+      "name": "Paciente inactivo conserva acceso a su cuenta",
+      "passed": true
+    },
+    {
+      "name": "El panel distingue la inactividad administrativa",
+      "passed": true
+    },
+    {
+      "name": "La tabla de usuarios no muestra hashes",
+      "passed": true
+    },
+    {
+      "name": "Deshabilitar una cuenta revoca el acceso de su sesión abierta",
+      "passed": true
+    },
+    {
+      "name": "Usuario deshabilitado no inicia sesión",
+      "passed": true
+    },
+    {
+      "name": "Cambios de permisos se aplican en la siguiente petición",
+      "passed": true
+    },
+    {
+      "name": "Configuración privada fuera del acceso web",
+      "passed": true
+    },
+    {
+      "name": "Hoja de estilos disponible",
+      "passed": true
+    },
+    {
+      "name": "Administrador deshabilita una cuenta desde el formulario",
+      "passed": true
+    },
+    {
+      "name": "Deshabilitación por formulario revoca la sesión abierta",
+      "passed": true
+    },
+    {
+      "name": "Administrador vuelve a habilitar la cuenta",
+      "passed": true
+    },
+    {
+      "name": "Edición sin nueva contraseña conserva la contraseña anterior",
+      "passed": true
+    },
+    {
+      "name": "Administrador cambia la contraseña de una cuenta",
+      "passed": true
+    },
+    {
+      "name": "Cambio de contraseña revoca las sesiones anteriores",
+      "passed": true
+    },
+    {
+      "name": "La nueva contraseña permite iniciar sesión",
+      "passed": true
+    },
+    {
+      "name": "Administrador y recepción consultan el listado de pacientes",
+      "passed": true
+    },
+    {
+      "name": "Recepción abre el alta de pacientes",
+      "passed": true
+    },
+    {
+      "name": "Recepción registra un paciente con datos personales y de contacto",
+      "passed": true
+    },
+    {
+      "name": "Alta normaliza CI, inicia activa e ignora una vinculación de usuario manipulada",
+      "passed": true
+    },
+    {
+      "name": "Registrar una ficha no crea una cuenta de acceso adicional",
+      "passed": true
+    },
+    {
+      "name": "Recepción consulta la ficha registrada",
+      "passed": true
+    },
+    {
+      "name": "Búsqueda de paciente: prueba_be2a41c7-CLINICA",
+      "passed": true
+    },
+    {
+      "name": "Búsqueda de paciente: Elena",
+      "passed": true
+    },
+    {
+      "name": "Búsqueda de paciente: Prueba Clínica",
+      "passed": true
+    },
+    {
+      "name": "Búsqueda sin coincidencias muestra un listado vacío",
+      "passed": true
+    },
+    {
+      "name": "CI equivalente duplicado se rechaza sin crear registros parciales",
+      "passed": true
+    },
+    {
+      "name": "Paciente rechaza dato inválido: fecha_nacimiento 2001-02-30",
+      "passed": true
+    },
+    {
+      "name": "Paciente rechaza dato inválido: fecha_nacimiento 2999-01-01",
+      "passed": true
+    },
+    {
+      "name": "Paciente rechaza dato inválido: correo correo-invalido",
+      "passed": true
+    },
+    {
+      "name": "Paciente rechaza dato inválido: telefono 12",
+      "passed": true
+    },
+    {
+      "name": "El registro de pacientes exige CSRF",
+      "passed": true
+    },
+    {
+      "name": "Paciente no consulta el módulo administrativo de pacientes",
+      "passed": true
+    },
+    {
+      "name": "Paciente no registra pacientes mediante un envío directo",
+      "passed": true
+    },
+    {
+      "name": "Médico no consulta el módulo administrativo de pacientes",
+      "passed": true
+    },
+    {
+      "name": "Médico no registra pacientes mediante un envío directo",
+      "passed": true
+    },
+    {
+      "name": "Consulta de pacientes exige iniciar sesión",
+      "passed": true
+    },
+    {
+      "name": "Ficha de paciente inexistente devuelve 404",
+      "passed": true
+    },
+    {
+      "name": "Recepción actualiza los datos del paciente",
+      "passed": true
+    },
+    {
+      "name": "Una edición antigua no sobrescribe los cambios del paciente",
+      "passed": true
+    },
+    {
+      "name": "Se actualiza el contacto de un paciente vinculado a una cuenta",
+      "passed": true
+    },
+    {
+      "name": "Editar paciente no cambia su cuenta, correo de acceso ni reactiva su estado",
+      "passed": true
+    },
+    {
+      "name": "La cuenta conserva su contraseña tras editar la ficha",
+      "passed": true
+    },
+    {
+      "name": "La ficha informa de las citas y multas relacionadas",
+      "passed": true
+    },
+    {
+      "name": "Desactivar paciente exige registrar un motivo",
+      "passed": true
+    },
+    {
+      "name": "Una petición GET no desactiva al paciente",
+      "passed": true
+    },
+    {
+      "name": "Recepción desactiva al paciente con motivo",
+      "passed": true
+    },
+    {
+      "name": "La desactivación del paciente conserva habilitada su cuenta de acceso",
+      "passed": true
+    },
+    {
+      "name": "Desactivar conserva citas, historial, avisos y multas sin cancelar turnos futuros",
+      "passed": true
+    },
+    {
+      "name": "El paciente desactivado puede seguir iniciando sesión",
+      "passed": true
+    },
+    {
+      "name": "La desactivación conserva un evento asociado al paciente y su responsable",
+      "passed": true
+    },
+    {
+      "name": "Repetir la desactivación no duplica el evento",
+      "passed": true
+    },
+    {
+      "name": "El filtro separa pacientes activos e inactivos",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU06 impide gestionar pacientes en una sesión de recepción abierta",
+      "passed": true
+    },
+    {
+      "name": "La revocación de CU06 también bloquea formularios abiertos antes del cambio",
+      "passed": true
+    },
+    {
+      "name": "Restituir CU06 permite volver a gestionar pacientes",
+      "passed": true
+    },
+    {
+      "name": "Mi perfil exige una sesión autenticada",
+      "passed": true
+    },
+    {
+      "name": "No se guardan cambios del perfil sin iniciar sesión",
+      "passed": true
+    },
+    {
+      "name": "Administrador no utiliza el perfil de un paciente aunque tenga otros permisos",
+      "passed": true
+    },
+    {
+      "name": "Recepción no utiliza el perfil de un paciente aunque tenga otros permisos",
+      "passed": true
+    },
+    {
+      "name": "Médico no utiliza el perfil de un paciente aunque tenga otros permisos",
+      "passed": true
+    },
+    {
+      "name": "Paciente consulta su propio perfil, incluso estando inactivo y con deuda",
+      "passed": true
+    },
+    {
+      "name": "Mi perfil aparece en el panel y mantiene protegidos los datos de identidad",
+      "passed": true
+    },
+    {
+      "name": "El perfil deniega un identificador ajeno enviado en paciente_id",
+      "passed": true
+    },
+    {
+      "name": "El perfil deniega un identificador ajeno enviado en usuario_id",
+      "passed": true
+    },
+    {
+      "name": "No existe una ruta para consultar un perfil mediante el id de otro paciente",
+      "passed": true
+    },
+    {
+      "name": "Un identificador de paciente manipulado no cambia ningún perfil",
+      "passed": true
+    },
+    {
+      "name": "El paciente no cambia su CI mediante un envío directo",
+      "passed": true
+    },
+    {
+      "name": "Guardar perfil exige protección CSRF",
+      "passed": true
+    },
+    {
+      "name": "El paciente guarda contacto, emergencia y salud en la misma operación",
+      "passed": true
+    },
+    {
+      "name": "Los datos de contacto, salud y emergencia quedan guardados en PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "Editar perfil no cambia identidad, rol, contraseña, correo de acceso ni reactiva al paciente",
+      "passed": true
+    },
+    {
+      "name": "Actualizar el perfil conserva citas, historial, avisos y multas",
+      "passed": true
+    },
+    {
+      "name": "El formulario vuelve a mostrar los datos guardados con salida HTML escapada",
+      "passed": true
+    },
+    {
+      "name": "La auditoría registra el cambio de perfil sin copiar datos médicos ni contactos",
+      "passed": true
+    },
+    {
+      "name": "Un formulario de perfil antiguo no sobrescribe cambios guardados",
+      "passed": true
+    },
+    {
+      "name": "Un cambio de contacto del paciente invalida la ficha administrativa abierta antes",
+      "passed": true
+    },
+    {
+      "name": "Un cambio de recepción impide sobrescribir el contacto desde un perfil antiguo",
+      "passed": true
+    },
+    {
+      "name": "Perfil rechaza sin cambios parciales: tipo_sangre",
+      "passed": true
+    },
+    {
+      "name": "Perfil rechaza sin cambios parciales: emergencia_telefono",
+      "passed": true
+    },
+    {
+      "name": "Perfil rechaza sin cambios parciales: alergias",
+      "passed": true
+    },
+    {
+      "name": "Perfil rechaza sin cambios parciales: medicamentos",
+      "passed": true
+    },
+    {
+      "name": "El perfil rechaza una estructura manipulada de datos médicos",
+      "passed": true
+    },
+    {
+      "name": "Guardar un perfil sin cambios no duplica su auditoría",
+      "passed": true
+    },
+    {
+      "name": "El paciente puede retirar su contacto de emergencia y limpiar datos opcionales",
+      "passed": true
+    },
+    {
+      "name": "Actualizar varias veces conserva un perfil y un contacto por paciente",
+      "passed": true
+    },
+    {
+      "name": "Se crea otro paciente ficticio para comprobar aislamiento",
+      "passed": true
+    },
+    {
+      "name": "Otra cuenta de paciente no recibe el contacto ni la información del primer perfil",
+      "passed": true
+    },
+    {
+      "name": "Un fallo de base revierte contacto, emergencia y salud de forma atómica",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU07 bloquea el perfil y retira su enlace en una sesión abierta",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU07 bloquea también un formulario de perfil abierto antes",
+      "passed": true
+    },
+    {
+      "name": "Restituir CU07 permite volver a actualizar el perfil",
+      "passed": true
+    },
+    {
+      "name": "Una cuenta sin ficha vinculada no consulta ni modifica otro paciente",
+      "passed": true
+    },
+    {
+      "name": "Administrador abre médicos y especialidades",
+      "passed": true
+    },
+    {
+      "name": "Los catálogos administrativos exigen iniciar sesión",
+      "passed": true
+    },
+    {
+      "name": "Recepción no consulta ni modifica el catálogo de medicos",
+      "passed": true
+    },
+    {
+      "name": "Recepción no consulta ni modifica el catálogo de especialidades",
+      "passed": true
+    },
+    {
+      "name": "Médico no consulta ni modifica el catálogo de medicos",
+      "passed": true
+    },
+    {
+      "name": "Médico no consulta ni modifica el catálogo de especialidades",
+      "passed": true
+    },
+    {
+      "name": "Paciente no consulta ni modifica el catálogo de medicos",
+      "passed": true
+    },
+    {
+      "name": "Paciente no consulta ni modifica el catálogo de especialidades",
+      "passed": true
+    },
+    {
+      "name": "Registrar especialidad general",
+      "passed": true
+    },
+    {
+      "name": "Registrar especialidad pediatria",
+      "passed": true
+    },
+    {
+      "name": "Registrar especialidad inactiva",
+      "passed": true
+    },
+    {
+      "name": "El nombre de especialidad queda normalizado en la base",
+      "passed": true
+    },
+    {
+      "name": "No se duplica una especialidad con mayúsculas y espacios diferentes",
+      "passed": true
+    },
+    {
+      "name": "El nombre de una especialidad inactiva también se conserva único",
+      "passed": true
+    },
+    {
+      "name": "Detalle de especialidad escapa la descripción",
+      "passed": true
+    },
+    {
+      "name": "Búsqueda y filtro de especialidades separan los registros",
+      "passed": true
+    },
+    {
+      "name": "Especialidad con etiquetas inválidas rechazada",
+      "passed": true
+    },
+    {
+      "name": "Administrador edita una especialidad",
+      "passed": true
+    },
+    {
+      "name": "Edición antigua de especialidad no sobrescribe cambios",
+      "passed": true
+    },
+    {
+      "name": "Alta de especialidad exige CSRF",
+      "passed": true
+    },
+    {
+      "name": "Administrador registra médico con varias especialidades y cuenta de Médico",
+      "passed": true
+    },
+    {
+      "name": "Registro profesional, correo y cuenta vinculada se guardan correctamente",
+      "passed": true
+    },
+    {
+      "name": "Varias especialidades no duplican ni modifican la cuenta de acceso",
+      "passed": true
+    },
+    {
+      "name": "La cuenta médica muestra los datos del profesional vinculado",
+      "passed": true
+    },
+    {
+      "name": "Médicos se buscan por registro profesional y apellido",
+      "passed": true
+    },
+    {
+      "name": "Registro profesional equivalente no crea otro médico",
+      "passed": true
+    },
+    {
+      "name": "Médico rechaza sin alta parcial: especialidades []",
+      "passed": true
+    },
+    {
+      "name": "Médico rechaza sin alta parcial: especialidades [4]",
+      "passed": true
+    },
+    {
+      "name": "Médico rechaza sin alta parcial: especialidades [999999999]",
+      "passed": true
+    },
+    {
+      "name": "Médico rechaza sin alta parcial: usuario_id 1",
+      "passed": true
+    },
+    {
+      "name": "Médico rechaza sin alta parcial: usuario_id 6",
+      "passed": true
+    },
+    {
+      "name": "Médico rechaza sin alta parcial: telefono 12",
+      "passed": true
+    },
+    {
+      "name": "Médico rechaza sin alta parcial: correo invalido",
+      "passed": true
+    },
+    {
+      "name": "Lista manipulada de especialidades rechazada",
+      "passed": true
+    },
+    {
+      "name": "Alta de médico exige CSRF",
+      "passed": true
+    },
+    {
+      "name": "Detalles de médico y especialidad inexistentes devuelven 404",
+      "passed": true
+    },
+    {
+      "name": "Administrador actualiza contacto del médico",
+      "passed": true
+    },
+    {
+      "name": "Edición antigua de médico no sobrescribe cambios",
+      "passed": true
+    },
+    {
+      "name": "Retirar una especialidad conserva la asociación como histórica",
+      "passed": true
+    },
+    {
+      "name": "La cita conserva su turno y queda visible para revisión al retirar la especialidad",
+      "passed": true
+    },
+    {
+      "name": "Asociación retirada impide nuevas reservas en esa especialidad",
+      "passed": true
+    },
+    {
+      "name": "Restituir una asociación la reactiva sin duplicarla",
+      "passed": true
+    },
+    {
+      "name": "Desactivar médico conserva la cita y muestra su revisión pendiente",
+      "passed": true
+    },
+    {
+      "name": "Médico inactivo no recibe nuevas reservas y conserva su cuenta habilitada",
+      "passed": true
+    },
+    {
+      "name": "Filtro de médicos distingue activos e inactivos",
+      "passed": true
+    },
+    {
+      "name": "Administrador vuelve a activar al médico",
+      "passed": true
+    },
+    {
+      "name": "Desactivar especialidad mantiene sus médicos y muestra las citas para revisión",
+      "passed": true
+    },
+    {
+      "name": "Especialidad inactiva bloquea reservas sin borrar asociaciones",
+      "passed": true
+    },
+    {
+      "name": "Cambiar el estado de una especialidad invalida el formulario antiguo del médico",
+      "passed": true
+    },
+    {
+      "name": "Editar contacto conserva una asociación vigente cuya especialidad está temporalmente inactiva",
+      "passed": true
+    },
+    {
+      "name": "Reactivar especialidad conserva y habilita sus asociaciones vigentes",
+      "passed": true
+    },
+    {
+      "name": "Cambios de médico, especialidad y asociaciones conservan citas, historial, avisos y multas",
+      "passed": true
+    },
+    {
+      "name": "No hay operaciones de eliminación física de médicos ni especialidades",
+      "passed": true
+    },
+    {
+      "name": "Fallo de auditoría revierte médico y asociaciones sin cambios parciales",
+      "passed": true
+    },
+    {
+      "name": "Revocar CU08 bloquea el catálogo en una sesión abierta",
+      "passed": true
+    },
+    {
+      "name": "Revocar CU08 bloquea también un formulario abierto",
+      "passed": true
+    },
+    {
+      "name": "Restituir CU08 recupera el acceso al catálogo",
+      "passed": true
+    },
+    {
+      "name": "Revocar CU09 bloquea el catálogo en una sesión abierta",
+      "passed": true
+    },
+    {
+      "name": "Revocar CU09 bloquea también un formulario abierto",
+      "passed": true
+    },
+    {
+      "name": "Restituir CU09 recupera el acceso al catálogo",
+      "passed": true
+    },
+    {
+      "name": "Administrador consulta y registra horarios de atención",
+      "passed": true
+    },
+    {
+      "name": "Horarios exigen iniciar sesión",
+      "passed": true
+    },
+    {
+      "name": "Recepción no administra horarios",
+      "passed": true
+    },
+    {
+      "name": "Médico no administra horarios",
+      "passed": true
+    },
+    {
+      "name": "Paciente no administra horarios",
+      "passed": true
+    },
+    {
+      "name": "Crear médico sin cuenta para configurar horarios",
+      "passed": true
+    },
+    {
+      "name": "Alta de horario semanal en intervalos de media hora",
+      "passed": true
+    },
+    {
+      "name": "Tramos contiguos se permiten sin considerarse superpuestos",
+      "passed": true
+    },
+    {
+      "name": "El mismo tramo puede registrarse otro día de la semana",
+      "passed": true
+    },
+    {
+      "name": "Tramos activos superpuestos se rechazan sin alta parcial",
+      "passed": true
+    },
+    {
+      "name": "Horario rechaza dato inválido: hora_inicio 08:15",
+      "passed": true
+    },
+    {
+      "name": "Horario rechaza dato inválido: hora_fin 08:00",
+      "passed": true
+    },
+    {
+      "name": "Horario rechaza dato inválido: hora_inicio 25:00",
+      "passed": true
+    },
+    {
+      "name": "Horario rechaza dato inválido: dia_semana 8",
+      "passed": true
+    },
+    {
+      "name": "Horario rechaza dato inválido: medico_id 999999999",
+      "passed": true
+    },
+    {
+      "name": "No se guarda un horario para médico inactivo",
+      "passed": true
+    },
+    {
+      "name": "Horarios requieren protección CSRF",
+      "passed": true
+    },
+    {
+      "name": "Estructura manipulada del horario rechazada",
+      "passed": true
+    },
+    {
+      "name": "Horario inactivo puede conservar un tramo que coincide con otro activo",
+      "passed": true
+    },
+    {
+      "name": "Activar un horario superpuesto se rechaza conservando su estado anterior",
+      "passed": true
+    },
+    {
+      "name": "Filtros de horario combinan médico, día y estado",
+      "passed": true
+    },
+    {
+      "name": "Horario inexistente devuelve 404",
+      "passed": true
+    },
+    {
+      "name": "Editar horario sin afectar reservas",
+      "passed": true
+    },
+    {
+      "name": "Un horario antiguo no sobrescribe cambios recientes",
+      "passed": true
+    },
+    {
+      "name": "Horario sin reservas puede desactivarse conservando el registro",
+      "passed": true
+    },
+    {
+      "name": "Horario puede reactivarse si no produce conflictos",
+      "passed": true
+    },
+    {
+      "name": "Cambio incompatible se rechaza y muestra la cita afectada: {'hora_fin': '11:00'}",
+      "passed": true
+    },
+    {
+      "name": "Cambio incompatible se rechaza y muestra la cita afectada: {'activo': '0'}",
+      "passed": true
+    },
+    {
+      "name": "Cambio incompatible se rechaza y muestra la cita afectada: {'dia_semana': '3'}",
+      "passed": true
+    },
+    {
+      "name": "Cambio incompatible se rechaza y muestra la cita afectada: {'medico_id': '2', 'hora_inicio': '19:00', 'hora_fin': '20:00'}",
+      "passed": true
+    },
+    {
+      "name": "Cambio que conserva el turno reservado se permite",
+      "passed": true
+    },
+    {
+      "name": "Los cambios de horario conservan citas, historial, avisos y multas",
+      "passed": true
+    },
+    {
+      "name": "Protección comprueba el final completo de la cita y muestra solo las afectadas",
+      "passed": true
+    },
+    {
+      "name": "Fallo de auditoría revierte por completo el cambio de horario",
+      "passed": true
+    },
+    {
+      "name": "Revocar CU10 bloquea horarios y oculta su enlace en una sesión abierta",
+      "passed": true
+    },
+    {
+      "name": "Revocar CU10 bloquea también el formulario abierto",
+      "passed": true
+    },
+    {
+      "name": "Restituir CU10 recupera la gestión de horarios",
+      "passed": true
+    },
+    {
+      "name": "Los horarios no se eliminan físicamente por la interfaz",
+      "passed": true
+    },
+    {
+      "name": "Disponibilidad y gestión de citas requieren iniciar sesión",
+      "passed": true
+    },
+    {
+      "name": "La cuenta médica no utiliza operaciones de reservas de pacientes o recepción",
+      "passed": true
+    },
+    {
+      "name": "Paciente inactivo conserva consulta de disponibilidad",
+      "passed": true
+    },
+    {
+      "name": "Recepción y administración consultan disponibilidad",
+      "passed": true
+    },
+    {
+      "name": "Los tramos contiguos se dividen en turnos únicos de 30 minutos con fin exclusivo",
+      "passed": true
+    },
+    {
+      "name": "Disponibilidad rechaza fecha inválida o pasada: 2000-01-01",
+      "passed": true
+    },
+    {
+      "name": "Disponibilidad rechaza fecha inválida o pasada: 2027-02-29",
+      "passed": true
+    },
+    {
+      "name": "Disponibilidad rechaza fecha inválida o pasada: fecha",
+      "passed": true
+    },
+    {
+      "name": "No se consulta una especialidad inactiva",
+      "passed": true
+    },
+    {
+      "name": "El médico debe atender la especialidad seleccionada",
+      "passed": true
+    },
+    {
+      "name": "Una reserva de otra especialidad también ocupa el horario del mismo médico",
+      "passed": true
+    },
+    {
+      "name": "La ausencia descuenta todos los bloques con solapamiento, incluidos los parciales",
+      "passed": true
+    },
+    {
+      "name": "La consulta del día actual no ofrece horas pasadas",
+      "passed": true
+    },
+    {
+      "name": "Paciente programa su propia cita desde un turno disponible",
+      "passed": true
+    },
+    {
+      "name": "El servidor fija paciente propio, autor, estado Programada y duración de 30 minutos",
+      "passed": true
+    },
+    {
+      "name": "Reserva, historial y aviso pendiente quedan persistidos juntos",
+      "passed": true
+    },
+    {
+      "name": "El paciente consulta el código y estado de su reserva",
+      "passed": true
+    },
+    {
+      "name": "Guardar la reserva retira el turno de la disponibilidad",
+      "passed": true
+    },
+    {
+      "name": "Repetir la reserva no duplica la cita ni sus avisos",
+      "passed": true
+    },
+    {
+      "name": "Otro paciente no consulta la cita por su identificador",
+      "passed": true
+    },
+    {
+      "name": "El listado de citas filtra por el propietario autenticado",
+      "passed": true
+    },
+    {
+      "name": "Paciente ajeno no realiza confirmar mediante POST",
+      "passed": true
+    },
+    {
+      "name": "Paciente ajeno no realiza reprogramar mediante POST",
+      "passed": true
+    },
+    {
+      "name": "Paciente ajeno no realiza cancelar mediante POST",
+      "passed": true
+    },
+    {
+      "name": "Paciente no reserva para otra ficha manipulando paciente_id",
+      "passed": true
+    },
+    {
+      "name": "El formulario ordinario no permite forzar una cita urgente",
+      "passed": true
+    },
+    {
+      "name": "Paciente inactivo no registra una nueva reserva",
+      "passed": true
+    },
+    {
+      "name": "Paciente activo con multa pendiente no registra una nueva reserva ordinaria",
+      "passed": true
+    },
+    {
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-09T10:30",
+      "passed": true
+    },
+    {
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-09T14:00",
+      "passed": true
+    },
+    {
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-09T08:15",
+      "passed": true
+    },
+    {
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2000-01-01T09:00",
+      "passed": true
+    },
+    {
+      "name": "Programar cita exige protección CSRF",
+      "passed": true
+    },
+    {
+      "name": "Recepción programa una cita para un paciente activo verificado",
+      "passed": true
+    },
+    {
+      "name": "Un turno ocupado después de abrir el formulario se rechaza al guardar",
+      "passed": true
+    },
+    {
+      "name": "Paciente confirma asistencia y conserva su reserva",
+      "passed": true
+    },
+    {
+      "name": "Confirmar conserva el turno ocupado y registra historial y aviso",
+      "passed": true
+    },
+    {
+      "name": "Confirmación repetida o antigua no duplica cambios",
+      "passed": true
+    },
+    {
+      "name": "Una petición GET no confirma la asistencia",
+      "passed": true
+    },
+    {
+      "name": "Reprogramar a un turno ocupado conserva íntegra la reserva anterior",
+      "passed": true
+    },
+    {
+      "name": "El paciente solicita cambios de médico mediante recepción",
+      "passed": true
+    },
+    {
+      "name": "Reprogramar no cambia la especialidad de la cita",
+      "passed": true
+    },
+    {
+      "name": "Reprogramar exige indicar el motivo",
+      "passed": true
+    },
+    {
+      "name": "Reprogramar exige un turno distinto al actual",
+      "passed": true
+    },
+    {
+      "name": "Paciente no justifica un cambio como causa de la clínica",
+      "passed": true
+    },
+    {
+      "name": "Paciente reprograma su cita a otro turno libre",
+      "passed": true
+    },
+    {
+      "name": "Reprogramación vuelve a Programada y conserva identidad y autoría originales",
+      "passed": true
+    },
+    {
+      "name": "Historial conserva el turno anterior; el cambio libera uno y ocupa el otro",
+      "passed": true
+    },
+    {
+      "name": "Un formulario antiguo no vuelve a mover la cita",
+      "passed": true
+    },
+    {
+      "name": "Recepción debe registrar aceptación del paciente para cambiar de médico",
+      "passed": true
+    },
+    {
+      "name": "Recepción reprograma con otro médico de la misma especialidad y aceptación",
+      "passed": true
+    },
+    {
+      "name": "La aceptación del cambio de médico conserva un evento verificable",
+      "passed": true
+    },
+    {
+      "name": "El paciente puede ratificar el nuevo turno después de un cambio originado por la clínica",
+      "passed": true
+    },
+    {
+      "name": "Paciente cancela su reserva conservando el registro",
+      "passed": true
+    },
+    {
+      "name": "Cancelación anticipada libera el turno sin incidencia",
+      "passed": true
+    },
+    {
+      "name": "Una cita cancelada no permite confirmar ni duplica registros",
+      "passed": true
+    },
+    {
+      "name": "Una cita cancelada no permite reprogramar ni duplica registros",
+      "passed": true
+    },
+    {
+      "name": "Una cita cancelada no permite cancelar ni duplica registros",
+      "passed": true
+    },
+    {
+      "name": "Cita vencida no permite confirmar por el flujo ordinario",
+      "passed": true
+    },
+    {
+      "name": "Cita vencida no permite reprogramar por el flujo ordinario",
+      "passed": true
+    },
+    {
+      "name": "Cita vencida no permite cancelar por el flujo ordinario",
+      "passed": true
+    },
+    {
+      "name": "Preparar paciente ficticio sin incidencias previas",
+      "passed": true
+    },
+    {
+      "name": "Primera cancelación tardía válida genera una advertencia sin multa",
+      "passed": true
+    },
+    {
+      "name": "El detalle informa la advertencia registrada",
+      "passed": true
+    },
+    {
+      "name": "Una primera advertencia permite nuevas reservas",
+      "passed": true
+    },
+    {
+      "name": "Segunda incidencia válida registra una multa pendiente",
+      "passed": true
+    },
+    {
+      "name": "La multa queda pendiente sin registrar un pago ficticio",
+      "passed": true
+    },
+    {
+      "name": "Multa bloquea nuevas reservas ordinarias conservando perfil y consulta",
+      "passed": true
+    },
+    {
+      "name": "La multa no impide confirmar una reserva existente",
+      "passed": true
+    },
+    {
+      "name": "Cancelación autorizada sin nueva sanción: {'origen_cambio': 'clinica'}",
+      "passed": true
+    },
+    {
+      "name": "Cancelación autorizada sin nueva sanción: {'justificada': '1'}",
+      "passed": true
+    },
+    {
+      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-10-22T16:07'}",
+      "passed": true
+    },
+    {
+      "name": "Ausencia médica registrada evita sancionar al paciente",
+      "passed": true
+    },
+    {
+      "name": "Reserva próxima puede registrarse con horario válido",
+      "passed": true
+    },
+    {
+      "name": "Reserva hecha dentro del plazo se deriva a revisión sin sanción automática",
+      "passed": true
+    },
+    {
+      "name": "Fallo al guardar el aviso en base revierte reserva e historial sin datos parciales",
+      "passed": true
+    },
+    {
+      "name": "Retirar permiso de citas CU11",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU11 afecta la siguiente petición y los formularios abiertos",
+      "passed": true
+    },
+    {
+      "name": "Restituir permiso de citas CU11",
+      "passed": true
+    },
+    {
+      "name": "Retirar permiso de citas CU12",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU12 afecta la siguiente petición y los formularios abiertos",
+      "passed": true
+    },
+    {
+      "name": "Restituir permiso de citas CU12",
+      "passed": true
+    },
+    {
+      "name": "Retirar permiso de citas CU13",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU13 afecta la siguiente petición y los formularios abiertos",
+      "passed": true
+    },
+    {
+      "name": "Restituir permiso de citas CU13",
+      "passed": true
+    },
+    {
+      "name": "Retirar permiso de citas CU14",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU14 afecta la siguiente petición y los formularios abiertos",
+      "passed": true
+    },
+    {
+      "name": "Restituir permiso de citas CU14",
+      "passed": true
+    },
+    {
+      "name": "Retirar permiso de citas CU15",
+      "passed": true
+    },
+    {
+      "name": "Retirar CU15 afecta la siguiente petición y los formularios abiertos",
+      "passed": true
+    },
+    {
+      "name": "Restituir permiso de citas CU15",
+      "passed": true
+    },
+    {
+      "name": "Cambios de citas exigen token CSRF válido",
+      "passed": true
+    },
+    {
+      "name": "Cita inexistente devuelve 404 y no hay eliminación física",
+      "passed": true
+    },
+    {
+      "name": "Se limita el exceso de intentos de acceso",
+      "passed": true
+    }
+  ]
+}

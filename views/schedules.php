@@ -1,0 +1,12 @@
+<div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Horarios de atención</h1><p>Organiza la disponibilidad semanal de cada médico.</p></div><a class="button primary" href="/horarios/nuevo<?= $doctorId ? '?medico_id=' . (int) $doctorId : '' ?>">+ Nuevo horario</a></div>
+<section class="card">
+<form class="schedule-search" method="get" action="/horarios">
+<label>Médico<select name="medico_id"><option value="">Todos</option><?php foreach ($doctors as $doctor): ?><option value="<?= (int) $doctor['id'] ?>" <?= $doctorId===(int) $doctor['id'] ? 'selected' : '' ?>><?= e($doctor['nombres'] . ' ' . $doctor['apellidos'] . (!$doctor['activo'] ? ' · Inactivo' : '')) ?></option><?php endforeach; ?></select></label>
+<label>Día<select name="dia_semana"><option value="">Todos</option><?php foreach (App\ScheduleService::DAYS as $number=>$label): ?><option value="<?= (int) $number ?>" <?= $day===$number ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+<label>Estado<select name="estado"><?php foreach (['todos'=>'Todos','activos'=>'Activos','inactivos'=>'Inactivos'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= $state===$value ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select></label>
+<button class="button secondary" type="submit">Buscar</button></form>
+<div class="table-scroll"><table><thead><tr><th scope="col">Médico</th><th scope="col">Día</th><th scope="col">Inicio</th><th scope="col">Fin</th><th scope="col">Estado</th><th scope="col">Acción</th></tr></thead><tbody>
+<?php foreach ($items as $item): ?><tr><td><strong><?= e($item['medico']) ?></strong><?= !$item['medico_activo'] ? '<span class="field-help"> · Médico inactivo</span>' : '' ?></td><td><?= e(App\ScheduleService::DAYS[(int) $item['dia_semana']]) ?></td><td><?= e(substr($item['hora_inicio'],0,5)) ?></td><td><?= e(substr($item['hora_fin'],0,5)) ?></td><td><span class="badge <?= $item['activo'] ? 'enabled' : 'disabled' ?>"><?= $item['activo'] ? 'Activo' : 'Inactivo' ?></span></td><td><a class="table-action" href="/horarios/<?= (int) $item['id'] ?>/editar">Editar horario</a></td></tr><?php endforeach; ?>
+<?php if (!$items): ?><tr><td colspan="6" class="empty-state">No se encontraron horarios con esos filtros.</td></tr><?php endif; ?>
+</tbody></table></div><p class="field-help">Hasta 200 resultados. Los horarios se repiten cada semana; los turnos se calculan en bloques de 30 minutos.</p>
+</section>

@@ -1,0 +1,9 @@
+<div class="page-heading"><div><span class="eyebrow">MÉDICOS</span><h1><?= e($item['nombres'] . ' ' . $item['apellidos']) ?></h1><p><?= e(App\DoctorService::code((int) $item['id'])) ?> · Ficha del médico</p></div><a class="button primary" href="/medicos/<?= (int) $item['id'] ?>/editar">Editar médico</a></div>
+<section class="card"><div class="section-heading"><h2>Datos profesionales y de contacto</h2><span class="badge <?= $item['activo'] ? 'enabled' : 'disabled' ?>"><?= $item['activo'] ? 'Activo' : 'Inactivo' ?></span></div><dl class="account-details patient-details">
+<?php foreach (['registro_profesional'=>'Registro profesional','telefono'=>'Teléfono','correo'=>'Correo'] as $key=>$label): ?><div><dt><?= e($label) ?></dt><dd><?= e($item[$key] ?: 'Sin registrar') ?></dd></div><?php endforeach; ?>
+<div><dt>Cuenta de acceso</dt><dd><?= $item['usuario_id'] ? e($item['nombre_usuario'] . ($item['cuenta_habilitada'] ? ' · Habilitada' : ' · Deshabilitada')) : 'Sin cuenta vinculada' ?></dd></div></dl><a class="button quiet" href="/medicos">Volver al listado</a></section>
+<section class="card"><h2>Especialidades e historial de asociaciones</h2><ul class="catalog-relations">
+<?php foreach ($item['especialidades'] as $specialty): ?><li><?= e($specialty['nombre']) ?> · <?= !$specialty['asignada'] ? 'Asociación histórica' : ($specialty['activo'] ? 'Especialidad disponible' : 'Especialidad inactiva') ?></li><?php endforeach; ?>
+</ul><p class="field-help">Las asociaciones retiradas permanecen registradas. El médico y la especialidad deben estar activos para recibir nuevas reservas.</p></section>
+<?php require BASE_PATH . '/views/_future_appointments.php'; ?>
+<?php if (in_array('CU10',$user['permisos'],true)): ?><a class="button secondary" href="/horarios?medico_id=<?= (int) $item['id'] ?>">Ver horarios de atención</a><?php endif; ?>

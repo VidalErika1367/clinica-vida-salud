@@ -1,0 +1,1 @@
+<section class="error-card"><a class="brand" href="/ingresar"><img src="/assets/marca.svg" alt="" width="40" height="40"><span>Vida Salud<small>CLÍNICA</small></span></a><span class="error-code"><?= e($code) ?></span><h1><?= e($title) ?></h1><p><?= e($message) ?></p><a class="button primary" href="/ingresar">Volver al inicio</a></section>
