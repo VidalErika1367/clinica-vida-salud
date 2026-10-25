@@ -1,0 +1,17 @@
+.git
+.env
+.env.*
+**/.env
+**/.env.*
+storage
+tmp
+tests
+output
+.vscode
+node_modules
+vendor
+**/__pycache__
+*.log
+*.zip
+*.dump
+*.backup

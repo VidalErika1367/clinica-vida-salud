@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: clinica-vida-salud
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /ingresar
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_TIMEZONE
+        value: America/La_Paz
+      - key: SESSION_SECURE
+        value: "true"
+      - key: DB_SSLMODE
+        value: require
+      - key: DB_HOST
+        fromDatabase:
+          name: clinica-vida-salud-db
+          property: host
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        fromDatabase:
+          name: clinica-vida-salud-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: clinica-vida-salud-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: clinica-vida-salud-db
+          property: password
+      - key: CLINICA_ADMIN_USER
+        sync: false
+      - key: CLINICA_ADMIN_EMAIL
+        sync: false
+      - key: CLINICA_ADMIN_PASSWORD
+        sync: false
+
+databases:
+  - name: clinica-vida-salud-db
+    plan: free
+    region: oregon
+    postgresMajorVersion: "16"
+    databaseName: clinica_vida_salud
+    user: clinica_vida_salud
+    ipAllowList: []
