@@ -3,3 +3,4 @@
 /deploy/*.sh text eol=lf
 /deploy/*.conf text eol=lf
 /deploy/*.ini text eol=lf
+/database/migrations/*.sql text eol=lf

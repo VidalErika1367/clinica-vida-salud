@@ -8,5 +8,7 @@ try {
     $files = App\Migrator::apply();
     foreach ($files as $file) { echo '[OK] ' . $file . PHP_EOL; }
     if (!$files) { echo '[OK] La base ya está actualizada.' . PHP_EOL; }
-    echo 'Siguiente paso: php bin/crear_admin.php' . PHP_EOL;
+    $admin=App\Database::run("SELECT EXISTS(SELECT 1 FROM usuario u JOIN rol r ON r.id=u.rol_id
+        WHERE u.habilitado AND r.codigo='administrador')")->fetchColumn();
+    echo ($admin ? 'Conserva tus cuentas. Inicia PHP para continuar las pruebas locales.' : 'Siguiente paso: php bin/crear_admin.php') . PHP_EOL;
 } catch (Throwable $e) { fwrite(STDERR, 'No se completó la instalación: ' . $e->getMessage() . PHP_EOL); exit(1); }

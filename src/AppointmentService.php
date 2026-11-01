@@ -13,11 +13,34 @@ use PDOException;
 final class AppointmentService
 {
     public const ROLES=['administrador','recepcionista','paciente'];
-    public const MANAGE=['CU12','CU13','CU14','CU15'];
+    public const MANAGE=['CU12','CU13','CU14','CU15','CU16','CU17','CU18','CU19','CU26','CU28','CU29'];
+    private const EXTRA_ROLES=[
+        'CU16'=>['administrador','recepcionista','medico'],
+        'CU17'=>['administrador','recepcionista'],
+        'CU18'=>['administrador','recepcionista','medico'],
+        'CU19'=>['administrador','recepcionista','paciente'],
+        'CU20'=>['administrador','recepcionista'],
+        'CU21'=>['paciente'],
+        'CU22'=>['administrador','recepcionista'],
+        'CU23'=>['administrador','recepcionista'],
+        'CU24'=>['administrador','recepcionista','paciente'],
+        'CU25'=>['administrador','recepcionista'],
+        'CU26'=>['administrador','recepcionista'],
+        'CU27'=>['paciente'],
+        'CU28'=>['administrador','recepcionista','paciente'],
+        'CU29'=>['administrador','recepcionista','paciente'],
+        'CU30'=>['paciente'],
+    ];
     public static function code(int $id): string { return 'CM-' . str_pad((string) $id,6,'0',STR_PAD_LEFT); }
     public static function allowed(array $user, string $permission): bool
     {
-        return in_array($user['rol'],self::ROLES,true) && in_array($permission,$user['permisos'],true);
+        return in_array($user['rol'],self::EXTRA_ROLES[$permission] ?? self::ROLES,true)
+            && in_array($permission,$user['permisos'],true);
+    }
+    public static function canView(array $user): bool
+    {
+        foreach (self::MANAGE as $permission) { if (self::allowed($user,$permission)) { return true; } }
+        return false;
     }
     public static function actor(int $id, ?string $permission=null): array
     {
@@ -25,9 +48,7 @@ final class AppointmentService
         if (!$user) { throw new HttpException(403,'La cuenta ya no tiene acceso. Vuelve a ingresar.'); }
         unset($user['password_hash']);
         $user['permisos']=RoleRepository::forUser($id);
-        $permitted=$permission ? in_array($permission,$user['permisos'],true)
-            : (bool) array_intersect(self::MANAGE,$user['permisos']);
-        if (!in_array($user['rol'],self::ROLES,true) || !$permitted) {
+        if (!($permission ? self::allowed($user,$permission) : self::canView($user))) {
             throw new HttpException(403,'Tu cuenta no tiene permiso para realizar esta operación.');
         }
         return $user;
@@ -38,6 +59,9 @@ final class AppointmentService
         if (!$row) { throw new HttpException(404,'No se encontró la cita.'); }
         if ($actor['rol']==='paciente' && (int) ($row['propietario_id'] ?? 0)!==(int) $actor['id']) {
             throw new HttpException(403,'Solo puedes consultar y gestionar tus propias citas.');
+        }
+        if ($actor['rol']==='medico' && (int) ($row['medico_usuario_id'] ?? 0)!==(int) $actor['id']) {
+            throw new HttpException(403,'Solo puedes consultar y registrar la atención de tus propias citas.');
         }
         return $row;
     }
@@ -207,6 +231,41 @@ final class AppointmentService
                 $notice=$parsed->format(DATE_ATOM);
             }
             AppointmentRepository::cancel($id,$userId,$reason,$origin,$justified,$notice);
+        });
+    }
+    public static function attend(int $id, array $input, int $userId): void
+    {
+        self::transaction(function () use ($id,$input,$userId): void {
+            UserRepository::lockAccounts(); $actor=self::actor($userId,'CU16');
+            $row=self::lock($id,$actor); self::checkVersion($row,$input);
+            if (!in_array($row['estado'],['programada','confirmada'],true) || $row['futura']) {
+                throw new ValidationException(['general'=>'Solo puede registrarse la atención de una cita programada o confirmada cuyo turno ya comenzó.']);
+            }
+            if (($input['atencion_realizada'] ?? null)!=='1') {
+                throw new ValidationException(['atencion_realizada'=>'Confirma que verificaste al paciente y que la consulta efectivamente se realizó.']);
+            }
+            AppointmentRepository::actor($userId);
+            AppointmentRepository::attend($id);
+        });
+    }
+    public static function noShow(int $id, array $input, int $userId): void
+    {
+        $reason=self::reason($input,'motivo_cambio');
+        self::transaction(function () use ($id,$input,$userId,$reason): void {
+            UserRepository::lockAccounts(); $actor=self::actor($userId,'CU17');
+            $row=self::lock($id,$actor); self::checkVersion($row,$input);
+            if (!in_array($row['estado'],['programada','confirmada'],true) || $row['vigente']) {
+                throw new ValidationException(['general'=>'Solo puede registrarse una inasistencia cuando el turno haya finalizado y la cita siga programada o confirmada.']);
+            }
+            if (($input['paciente_ausente'] ?? null)!=='1' || ($input['medico_disponible'] ?? null)!=='1') {
+                throw new ValidationException(['verificacion'=>'Verifica que el paciente no asistió, que el médico estaba disponible y que revisaste los avisos de cancelación.']);
+            }
+            if (AppointmentRepository::doctorAbsent($row)) {
+                throw new ValidationException(['general'=>'Existe una ausencia del médico en ese turno. No corresponde registrar una inasistencia del paciente.']);
+            }
+            [$origin,$justified]=self::changeContext($input,$actor);
+            AppointmentRepository::actor($userId);
+            AppointmentRepository::noShow($id,$reason,$origin,$justified);
         });
     }
 }

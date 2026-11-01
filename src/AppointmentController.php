@@ -20,14 +20,20 @@ final class AppointmentController
         $state=is_string($_GET['estado'] ?? null) ? $_GET['estado'] : 'vigentes';
         if (!in_array($state,['vigentes','todos','programada','confirmada','cancelada','atendida','inasistencia'],true)) { $state='vigentes'; }
         View::render('appointments',['title'=>$user['rol']==='paciente' ? 'Mis citas' : 'Citas','section'=>'citas',
-            'items'=>AppointmentRepository::search($user['rol']==='paciente' ? (int) $user['id'] : null,$query,$state),
+            'items'=>AppointmentRepository::search($user['rol']==='paciente' ? (int) $user['id'] : null,$query,$state,
+                $user['rol']==='medico' ? (int) $user['id'] : null),
             'query'=>$query,'state'=>$state]);
     }
     public static function detail(int $id, array $errors=[]): void
     {
         $user=self::authorize(); $row=AppointmentService::find($id,$user);
+        try { $page=AppointmentReadService::page($_GET['historial_pagina'] ?? null); }
+        catch (ValidationException $e) { $page=1; $errors+=$e->errors; }
+        $history=AppointmentRepository::history($id,$page); $more=count($history)>20;
         View::render('appointment_detail',['title'=>'Cita '.AppointmentService::code($id),'section'=>'citas','appointment'=>$row,
-            'version'=>AppointmentService::version($row),'errors'=>$errors,'history'=>AppointmentRepository::history($id),
+            'version'=>AppointmentService::version($row),'errors'=>$errors,'history'=>array_slice($history,0,20),
+            'historyPage'=>$page,'historyMore'=>$more,
+            'counter'=>AppointmentService::allowed($user,'CU29') ? CounterService::forAppointment($id,(int) $user['id']) : null,
             'incident'=>AppointmentRepository::incident($id)],$errors ? 422 : 200);
     }
     public static function bookingForm(?array $posted=null, array $errors=[]): void
@@ -118,5 +124,26 @@ final class AppointmentController
             Session::flash('La cita quedó Cancelada. Se liberó su horario y se conservó el registro.');
             redirect('/citas/'.$id);
         } catch (ValidationException $e) { self::cancelForm($id,$_POST,$e->errors); }
+    }
+    public static function finishForm(int $id, bool $noShow=false, ?array $posted=null, array $errors=[]): void
+    {
+        $user=self::authorize($noShow ? 'CU17' : 'CU16'); $row=AppointmentService::find($id,$user);
+        $canFinish=in_array($row['estado'],['programada','confirmada'],true) && !($noShow ? $row['vigente'] : $row['futura']);
+        View::render('appointment_finish',['title'=>$noShow ? 'Registrar inasistencia' : 'Registrar atención realizada',
+            'section'=>'citas','appointment'=>$row,'noShow'=>$noShow,'canFinish'=>$canFinish,'errors'=>$errors,
+            'old'=>isset($errors['version']) ? [] : array_filter($posted ?? [],'is_string'),
+            'version'=>isset($errors['version']) || $posted===null ? AppointmentService::version($row) : input('version'),
+            'doctorAbsent'=>AppointmentRepository::doctorAbsent($row),'policy'=>AppointmentRepository::policy()],$errors ? 422 : 200);
+    }
+    public static function finish(int $id, bool $noShow=false): void
+    {
+        $user=self::authorize($noShow ? 'CU17' : 'CU16');
+        try {
+            if ($noShow) { AppointmentService::noShow($id,$_POST,(int) $user['id']); }
+            else { AppointmentService::attend($id,$_POST,(int) $user['id']); }
+            Session::flash($noShow ? 'Inasistencia registrada. Revisa en el detalle la advertencia, multa o revisión que corresponda.'
+                : 'La cita quedó Atendida y se conservó en el historial.');
+            redirect('/citas/'.$id);
+        } catch (ValidationException $e) { self::finishForm($id,$noShow,$_POST,$e->errors); }
     }
 }

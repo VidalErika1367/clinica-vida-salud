@@ -42,7 +42,7 @@ final class AvailabilityService
         }
         throw new ValidationException(['inicio'=>'El turno ya no está disponible. Vuelve a consultar los horarios libres.']);
     }
-    public static function form(array $input): array
+    public static function form(array $input, ?int $ignore=null): array
     {
         $clock=AvailabilityRepository::clock();
         $specialty=self::id($input['especialidad_id'] ?? null);
@@ -61,7 +61,7 @@ final class AvailabilityService
             if (isset($input['medico_id']) && $input['medico_id']!=='') { $data['errors']['medico_id']='Selecciona un médico válido.'; }
             return $data;
         }
-        try { $data['slots']=self::slots($specialty,$doctor,$date); }
+        try { $data['slots']=self::slots($specialty,$doctor,$date,$ignore); }
         catch (ValidationException $e) { $data['errors']=$e->errors; }
         return $data;
     }

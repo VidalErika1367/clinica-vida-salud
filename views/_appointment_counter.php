@@ -1,0 +1,4 @@
+<?php if ($counter && $counter['activo']): ?>
+<section class="card appointment-counter" data-counter-url="/citas/<?= (int) $appointment['id'] ?>/contador" data-start="<?= $counter['inicio'] ?>" data-end="<?= $counter['fin'] ?>" data-server="<?= $counter['servidor'] ?>">
+<h2>Tiempo de la cita</h2><p class="counter-output" data-counter-output><?= $counter['fase']==='espera' ? 'El turno todavía no comenzó.' : ($counter['fase']==='turno' ? 'Bloque de atención en curso.' : 'Turno finalizado') ?></p><p class="field-help">El bloque programado dura 30 minutos. La atención y la inasistencia se registran por separado.</p><p class="field-help" data-counter-status>Horario de Bolivia. Actualización automática mientras esta página esté abierta.</p>
+</section><?php endif; ?>

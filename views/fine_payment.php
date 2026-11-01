@@ -1,0 +1,11 @@
+<div class="page-heading"><div><span class="eyebrow">PAGO PRESENCIAL</span><h1><?= e($title) ?></h1><p><?= e($fine['paciente']) ?> · CI <?= e($fine['ci']) ?></p></div><a class="button quiet" href="/pagos?paciente_id=<?= (int) $fine['paciente_id'] ?>">Volver al paciente</a></div>
+<?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
+<section class="card form-card"><dl class="account-details patient-details"><div><dt>Multa</dt><dd><?= e(App\FineService::code((int) $fine['id'])) ?></dd></div><div><dt>Cita de origen</dt><dd><?= e(App\AppointmentService::code((int) $fine['cita_id'])) ?></dd></div><div><dt>Importe íntegro</dt><dd>Bs <?= e(number_format((float) $fine['monto'],2,',','.')) ?></dd></div><div><dt>Estado</dt><dd><?= $fine['estado']==='pendiente' ? 'Pendiente' : 'Pagada' ?></dd></div><div><dt><?= $fine['pago_fecha'] ? 'Fecha del pago' : 'Fecha actual' ?></dt><dd><?= e(clinic_datetime($fine['pago_fecha'] ?: $clock['ahora'])) ?> · Hora de Bolivia</dd></div>
+<?php if ($fine['pago_comprobante']): ?><div><dt>Comprobante</dt><dd><?= e($fine['pago_comprobante']) ?></dd></div><?php endif; ?></dl>
+<?php if ($fine['estado']==='pendiente'): ?>
+<form class="form-stack appointment-actions" method="post" action="/multas/<?= (int) $fine['id'] ?>/pagar"><?= csrf_field() ?><input type="hidden" name="version" value="<?= e($version) ?>">
+<label>Importe recibido · Bs *<input name="monto" inputmode="decimal" value="<?= old($old,'monto') ?>" maxlength="12" required></label><label>Número de comprobante único *<input name="comprobante" value="<?= old($old,'comprobante') ?>" maxlength="80" required></label>
+<label class="catalog-check"><input type="checkbox" name="pago_recibido" value="1" <?= ($old['pago_recibido'] ?? '')==='1' ? 'checked' : '' ?> required> Confirmo que recibí y verifiqué el pago presencial.</label>
+<p class="field-help">La fecha se registra al guardar. El pago corresponde al importe íntegro de esta multa y conserva las demás deudas. La reactivación de una ficha inactiva se gestiona por separado.</p>
+<div class="form-actions"><button class="button primary" type="submit">Registrar pago recibido</button></div></form>
+<?php else: ?><p class="patient-note">Esta multa ya está pagada. Consulta el comprobante en los registros del paciente.</p><?php endif; ?></section>

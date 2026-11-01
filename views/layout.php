@@ -21,7 +21,17 @@
         <?php if ($user['rol'] === 'administrador' && in_array('CU09',$user['permisos'],true)): ?><a href="/especialidades" <?= ($section ?? '') === 'especialidades' ? 'aria-current="page"' : '' ?>>Especialidades</a><?php endif; ?>
         <?php if ($user['rol'] === 'administrador' && in_array('CU10',$user['permisos'],true)): ?><a href="/horarios" <?= ($section ?? '') === 'horarios' ? 'aria-current="page"' : '' ?>>Horarios de atención</a><?php endif; ?>
         <?php if (App\AppointmentService::allowed($user,'CU11')): ?><a href="/disponibilidad" <?= ($section ?? '') === 'disponibilidad' ? 'aria-current="page"' : '' ?>>Consultar disponibilidad</a><?php endif; ?>
-        <?php if (in_array($user['rol'],App\AppointmentService::ROLES,true) && array_intersect(App\AppointmentService::MANAGE,$user['permisos'])): ?><a href="/citas" <?= ($section ?? '')==='citas' ? 'aria-current="page"' : '' ?>><?= $user['rol']==='paciente' ? 'Mis citas' : 'Citas' ?></a><?php endif; ?>
+        <?php if (App\AppointmentService::canView($user)): ?><a href="/citas" <?= ($section ?? '')==='citas' ? 'aria-current="page"' : '' ?>><?= $user['rol']==='paciente' ? 'Mis citas' : 'Citas' ?></a><?php endif; ?>
+        <?php foreach (['CU18'=>['agenda','Agenda médica'],'CU19'=>['historial','Historial de citas'],'CU20'=>['reportes','Reportes']] as $permission=>$link): ?>
+        <?php if (App\AppointmentService::allowed($user,$permission)): ?><a href="/<?= e($link[0]) ?>" <?= ($section ?? '')===$link[0] ? 'aria-current="page"' : '' ?>><?= e($link[1]) ?></a><?php endif; ?>
+        <?php endforeach; ?>
+        <?php if (App\AppointmentService::allowed($user,'CU21') || App\AppointmentService::allowed($user,'CU22')): ?><a href="/urgencias" <?= ($section ?? '')==='urgencias' ? 'aria-current="page"' : '' ?>>Citas urgentes</a><?php endif; ?>
+        <?php if (App\AppointmentService::allowed($user,'CU24')): ?><a href="/multas" <?= ($section ?? '')==='multas' ? 'aria-current="page"' : '' ?>><?= $user['rol']==='paciente' ? 'Mis advertencias y multas' : 'Advertencias y multas' ?></a><?php endif; ?>
+        <?php if (App\AppointmentService::allowed($user,'CU23')): ?><a href="/pagos" <?= ($section ?? '')==='pagos' ? 'aria-current="page"' : '' ?>>Registrar pago de multa</a><?php endif; ?>
+        <?php if (App\AppointmentService::allowed($user,'CU25')): ?><a href="/reactivaciones" <?= ($section ?? '')==='reactivaciones' ? 'aria-current="page"' : '' ?>>Reactivar pacientes</a><?php endif; ?>
+        <?php foreach (['CU26'=>['ausencias','Ausencias médicas'],'CU27'=>['telegram','Avisos por Telegram'],'CU28'=>['avisos','Avisos del sistema'],'CU30'=>['contacto-recepcion','Contactar con recepción']] as $permission=>$link): ?>
+        <?php if (App\AppointmentService::allowed($user,$permission)): ?><a href="/<?= e($link[0]) ?>" <?= ($section ?? '')===$link[0] ? 'aria-current="page"' : '' ?>><?= e($link[1]) ?></a><?php endif; ?>
+        <?php endforeach; ?>
     </nav>
     <div class="sidebar-bottom"><span class="status-dot"></span> Sesión protegida</div>
 </aside>

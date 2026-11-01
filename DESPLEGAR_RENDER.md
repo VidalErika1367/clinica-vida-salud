@@ -71,3 +71,12 @@ Las sesiones y el control temporal de intentos se guardan en el contenedor. Un r
 - Blueprints: https://render.com/docs/blueprint-spec
 - Plan gratuito: https://render.com/docs/free
 - Extensiones PostgreSQL: https://render.com/docs/postgresql-extensions
+
+
+## Al publicar la versión CU01–CU30
+
+Completa primero las pruebas locales. La migración 007 se aplicará con `preparar_servidor.php`, conservando datos y cuentas. `deploy/start.sh` inicia el proceso de tareas y Apache; conserva la corrección de `session.save_path` en `deploy/php.ini`.
+
+Configura las variables de Telegram descritas en TELEGRAM.md en el entorno del servidor, sin guardarlas en Git. Usa el dominio HTTPS del servicio como APP_URL. Mantén un único receptor de polling por bot o configura el webhook autenticado; el proceso de tareas realiza los envíos en ambos casos. Mientras el servicio esté detenido o suspendido no ejecutará tareas; la continuidad requiere un proceso activo o un programador externo.
+
+Subir código no copia los registros creados en la base local: antes de la revisión de la ingeniera se deberá comprobar qué datos deben conservarse en el servidor. No se importa ni reemplaza la base durante la actualización de código.

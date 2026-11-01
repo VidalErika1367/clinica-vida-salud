@@ -4,3 +4,5 @@
 /.vscode/
 *.log
 *.zip
+__pycache__/
+*.pyc

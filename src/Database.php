@@ -38,6 +38,12 @@ final class Database
         $statement->execute();
         return $statement;
     }
+    public static function reset(): void
+    {
+        try { if (self::$connection?->inTransaction()) { self::$connection->rollBack(); } }
+        catch (\PDOException) { /* Una conexión caída ya no permite revertir en el cliente. */ }
+        finally { self::$connection=null; }
+    }
     public static function transaction(callable $operation): mixed
     {
         $pdo = self::connection(); $pdo->beginTransaction();

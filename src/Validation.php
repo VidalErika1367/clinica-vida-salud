@@ -49,7 +49,7 @@ final class Validation
         return $errors;
     }
 
-    private static function validPhone(string $phone): bool
+    public static function validPhone(string $phone): bool
     {
         $digits = preg_replace('/\D/', '', $phone);
         return preg_match('/^\+?[0-9 ()-]{7,30}$/', $phone) === 1 && strlen($digits) >= 7 && strlen($digits) <= 15;

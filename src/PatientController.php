@@ -75,4 +75,31 @@ final class PatientController
             self::detail($id, $e->errors, input('motivo'));
         }
     }
+    public static function reactivationIndex(): void
+    {
+        $current=Auth::requireUser(); $user=AppointmentService::actor((int) $current['id'],'CU25');
+        $query=is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']),0,100) : '';
+        View::render('patient_reactivations',['title'=>'Reactivar pacientes','section'=>'reactivaciones','user'=>$user,
+            'query'=>$query,'patients'=>PatientService::search($query,'inactivos')]);
+    }
+    public static function reactivateForm(int $id, ?array $posted=null, array $errors=[]): void
+    {
+        $current=Auth::requireUser(); $user=AppointmentService::actor((int) $current['id'],'CU25');
+        $patient=PatientService::find($id);
+        $events=Database::run("SELECT accion,motivo,creado_en FROM evento_administrativo WHERE paciente_id=?
+            AND accion IN ('desactivar_paciente','inactividad','reactivar') ORDER BY id DESC LIMIT 20",[$id])->fetchAll();
+        View::render('patient_reactivate',['title'=>'Reactivar paciente','section'=>'reactivaciones','user'=>$user,
+            'patient'=>$patient,'summary'=>PatientService::summary($id),'events'=>$events,'errors'=>$errors,
+            'old'=>isset($errors['version']) ? [] : array_filter($posted ?? [],'is_string'),
+            'version'=>$posted===null || isset($errors['version']) ? PatientService::version($patient) : input('version')],$errors ? 422 : 200);
+    }
+    public static function reactivate(int $id): void
+    {
+        $current=Auth::requireUser(); $user=AppointmentService::actor((int) $current['id'],'CU25');
+        try {
+            PatientService::reactivate($id,$_POST,(int) $user['id']);
+            Session::flash('El paciente quedó Activo. Su cuenta, citas e incidencias se conservaron; las multas pendientes siguen vigentes.');
+            redirect('/pacientes/'.$id.'/reactivar');
+        } catch (ValidationException $e) { self::reactivateForm($id,$_POST,$e->errors); }
+    }
 }

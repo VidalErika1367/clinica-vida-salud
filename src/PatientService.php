@@ -109,4 +109,16 @@ final class PatientService
             return true;
         });
     }
+    public static function reactivate(int $id, array $input, int $actorId): void
+    {
+        $reason=CareSupport::text($input,'motivo');
+        CareSupport::confirm($input,'datos_verificados','Verifica la identidad y los datos de contacto antes de reactivar al paciente.');
+        CareSupport::transaction(function () use ($id,$input,$actorId,$reason): void {
+            UserRepository::lockAccounts(); AppointmentService::actor($actorId,'CU25');
+            $patient=self::find($id,true);
+            self::checkVersion($patient,$input['version'] ?? null);
+            if ($patient['activo']) { throw new ValidationException(['general'=>'El paciente ya está activo. No requiere otra reactivación.']); }
+            Database::run('CALL sp_reactivar_paciente(?,?,?)',[$id,$actorId,$reason]);
+        });
+    }
 }

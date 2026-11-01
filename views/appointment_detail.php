@@ -7,6 +7,8 @@
 <?php if ($appointment['motivo_cambio']): ?><div><dt>Motivo del cambio</dt><dd><?= e($appointment['motivo_cambio']) ?></dd></div><div><dt>Origen del cambio</dt><dd><?= $appointment['origen_cambio']==='clinica' ? 'Clínica' : 'Paciente' ?></dd></div><?php endif; ?>
 </dl>
 <div class="form-actions appointment-actions">
+<?php if (App\AppointmentService::allowed($user,'CU16') && in_array($appointment['estado'],['programada','confirmada'],true) && !$appointment['futura']): ?><a class="button primary" href="/citas/<?= (int) $appointment['id'] ?>/atender">Registrar atención realizada</a><?php endif; ?>
+<?php if (App\AppointmentService::allowed($user,'CU17') && in_array($appointment['estado'],['programada','confirmada'],true) && !$appointment['vigente']): ?><a class="button quiet" href="/citas/<?= (int) $appointment['id'] ?>/inasistencia">Registrar inasistencia</a><?php endif; ?>
 <?php if (App\AppointmentService::allowed($user,'CU13') && $appointment['estado']==='programada' && $appointment['futura']): ?><form method="post" action="/citas/<?= (int) $appointment['id'] ?>/confirmar"><?= csrf_field() ?><input type="hidden" name="version" value="<?= e($version) ?>"><button class="button primary" type="submit">Confirmar asistencia</button></form><?php endif; ?>
 <?php if (in_array($appointment['estado'],['programada','confirmada'],true) && $appointment['vigente']): ?>
 <?php if (App\AppointmentService::allowed($user,'CU14') && ($user['rol']!=='paciente' || $appointment['futura'])): ?><a class="button secondary" href="/citas/<?= (int) $appointment['id'] ?>/reprogramar">Reprogramar cita</a><?php endif; ?>
@@ -14,6 +16,7 @@
 <?php endif; ?>
 <a class="button quiet" href="/citas">Volver a citas</a>
 </div></section>
+<?php require BASE_PATH.'/views/_appointment_counter.php'; ?>
 <?php if ($incident): ?><div class="alert <?= $incident['monto'] ? 'warning' : 'success' ?>">
 <?php if ($incident['monto']): ?>Esta cita tiene una multa de Bs <?= e(number_format((float) $incident['monto'],2,',','.')) ?>, <?= e($incident['estado']==='pendiente' ? 'pendiente de pago en recepción' : 'pagada') ?>.
 <?php else: ?>Se registró la primera advertencia por incumplimiento. Esta incidencia no genera multa.<?php endif; ?>
@@ -24,5 +27,8 @@
 $moved=$before && ($before['inicio']!==$after['inicio'] || $before['medico_id']!==$after['medico_id']); ?>
 <li><strong><?= e(clinic_datetime($event['creado_en'])) ?> · <?= !$before ? 'Creada' : ($moved ? 'Reprogramada' : e(ucfirst($after['estado']))) ?></strong>
 <?php if ($moved): ?><p>Turno anterior: <?= e(clinic_datetime($before['inicio'])) ?> · <?= e($event['medico_anterior']) ?><br>Nuevo turno: <?= e(clinic_datetime($after['inicio'])) ?> · <?= e($event['medico_nuevo']) ?></p><?php endif; ?>
-<?php if ($after['motivo_cambio'] && ($moved || $after['estado']==='cancelada')): ?><p><?= e($after['motivo_cambio']) ?> · <?= $after['origen_cambio']==='clinica' ? 'Origen: Clínica' : 'Origen: Paciente' ?></p><?php endif; ?>
-</li><?php endforeach; ?></ol><p class="field-help">Se muestran los últimos 20 cambios de esta cita.</p></section>
+<?php if ($after['motivo_cambio'] && ($moved || in_array($after['estado'],['cancelada','inasistencia'],true))): ?><p><?= e($after['motivo_cambio']) ?> · <?= $after['origen_cambio']==='clinica' ? 'Origen: Clínica' : 'Origen: Paciente' ?><?= $after['justificada'] ? ' · Causa justificada' : '' ?></p><?php endif; ?>
+</li><?php endforeach; ?></ol><div class="form-actions">
+<?php if ($historyPage>1): ?><a class="button quiet" href="?historial_pagina=<?= $historyPage-1 ?>">Cambios más recientes</a><?php endif; ?>
+<?php if ($historyMore): ?><a class="button quiet" href="?historial_pagina=<?= $historyPage+1 ?>">Cambios anteriores</a><?php endif; ?>
+</div><p class="field-help">Página <?= (int) $historyPage ?> del registro de cambios. Se conserva el historial completo.</p></section>

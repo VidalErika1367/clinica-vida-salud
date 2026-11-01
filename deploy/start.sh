@@ -13,4 +13,11 @@ fi
 
 # Si falla la base o la primera cuenta, no se publica una aplicación incompleta.
 php bin/preparar_servidor.php
-exec apache2-foreground
+# El proceso de tareas mantiene recordatorios e inactividad aun sin visitas web.
+php bin/procesar_tareas.php &
+tasks_pid=$!
+trap 'kill "$tasks_pid" 2>/dev/null || true' EXIT INT TERM
+apache2-foreground &
+web_pid=$!
+trap 'kill "$tasks_pid" "$web_pid" 2>/dev/null || true' EXIT INT TERM
+wait "$web_pid"

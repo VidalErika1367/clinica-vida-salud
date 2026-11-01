@@ -1,105 +1,66 @@
-# Actualizar a CU11-CU15: disponibilidad y gestión de reservas
+# Actualizar CU26–CU30 en la laptop
 
-Esta versión conserva CU01-CU10 y añade consultar disponibilidad, programar, confirmar, reprogramar y cancelar citas. Se utilizan las tablas y reglas SQL existentes. Las cuatro migraciones mantienen sus mismos bytes.
+Paquete acumulativo CU01–CU30: agrega ausencias médicas, Telegram, avisos, contadores y contacto de recepción. Conserva cuentas, configuración y la misma base. Primero se completa la revisión local; después se publicará el trabajo completo.
 
-## Aplicar la actualización
+## 1. Descargar y extraer
 
-1. Detén el servidor PHP en su terminal con **Ctrl + C**.
-2. Descarga el ZIP actualizado.
-3. Extráelo en C:\Users\HP\Downloads\Vida_Salud_CU11_CU15. Dentro debe aparecer clinica-vida-salud.
-4. En la terminal de Visual Studio Code ejecuta esta línea completa:
+Descarga Vida_Salud_CU26_CU30.zip y extráelo en Descargas en una carpeta llamada Vida_Salud_CU26_CU30. Dentro queda clinica-vida-salud.
 
-~~~powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\Vida_Salud_CU11_CU15\clinica-vida-salud\scripts\actualizar_codigo.ps1" -ProjectPath "$env:USERPROFILE\Downloads\Clinica_Vida_Salud_Base_Inicial\clinica-vida-salud"
-~~~
+## 2. Detener PHP y copiar la actualización
 
-El nombre de la carpeta nueva debe coincidir exactamente con la ruta del comando. El script respalda código, comprueba migraciones y conserva la configuración, storage, cuentas y pacientes. No ejecuta SQL ni reinstala la base. Si falla una copia, restaura los archivos anteriores.
+En la terminal de Visual Studio Code donde está corriendo PHP pulsa Ctrl+C. Ejecuta:
 
-5. Desde la carpeta del proyecto original, inicia PHP:
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\Vida_Salud_CU26_CU30\clinica-vida-salud\scripts\actualizar_codigo.ps1" -ProjectPath "$env:USERPROFILE\Downloads\Clinica_Vida_Salud_Base_Inicial\clinica-vida-salud"
+```
 
-~~~powershell
+Se respalda el código anterior, se comprueban las migraciones y se conservan .env, .git, storage y los registros de la base. La copia fallida revierte los archivos que alcanzó a reemplazar. También se actualiza deploy para cuando se publique el proyecto completo.
+
+## 3. Aplicar la migración e iniciar PHP
+
+Desde el proyecto original, con PostgreSQL iniciado:
+
+```powershell
+cd "$env:USERPROFILE\Downloads\Clinica_Vida_Salud_Base_Inicial\clinica-vida-salud"
+php bin/instalar.php
+```
+
+Si ya instalaste CU25, solo debe aplicar 007_comunicaciones.sql. Las seis migraciones anteriores conservan sus bytes. Usa las mismas cuentas; no necesitas crear otro administrador.
+
+```powershell
 php -S 127.0.0.1:8000 -t public router.php
-~~~
+```
 
-6. Abre http://127.0.0.1:8000 y recarga con **Ctrl + F5**.
+Deja la terminal abierta y entra en http://127.0.0.1:8000/ingresar. Si PHP no está en PATH, usa el ejecutable de XAMPP que ya funciona en tu equipo.
 
-No ejecutes instalar.php ni crear_admin.php para actualizar. Conservas las mismas contraseñas.
+## 4. Revisar el contador (CU29)
 
-## Preparar un paciente activo para las pruebas
+Con recepción o el paciente abre el detalle de una cita Programada o Confirmada. Debe aparecer Tiempo de la cita y la cuenta regresiva al horario. El bloque de 30 minutos comienza automáticamente al llegar el inicio. Se oculta al cancelar. Su finalización no registra atención ni inasistencia; esas operaciones siguen requiriendo verificación real.
 
-Ana Ejemplo figura inactiva y CU25 Reactivar paciente sigue pendiente. No es necesario modificarla directamente en PostgreSQL.
+## 5. Revisar ausencias (CU26)
 
-Entra como administrador y crea una cuenta ficticia desde Usuarios:
+Con recepción abre Ausencias médicas y Registrar ausencia. Selecciona médico, intervalo y motivo de prueba. Revisa las citas pendientes del intervalo; conservarán su estado. Abre Gestionar cambio, acuerda la alternativa con el paciente y registra aceptación y motivo. Puedes cancelar con origen Clínica o buscar un turno libre del mismo médico o de otro de la misma especialidad. Un fallo conserva el pendiente. El historial de la cita y de la ausencia registra la gestión, sin sancionar al paciente por esa causa.
 
-- Usuario: paciente2.
-- Correo: paciente2@example.com.
-- Rol: Paciente.
-- Acceso habilitado: marcado.
-- CI: DEMO-003.
-- Nombres: Carla.
-- Apellidos: Ejemplo.
-- Teléfono: 00000000.
-- Contraseña: elige una de al menos 12 caracteres y repítela. Consérvala en tu equipo.
+## 6. Revisar avisos (CU28)
 
-Se creará una ficha activa vinculada a esa cuenta. Si alguno de esos identificadores ya existe, usa uno diferente.
+Abre Avisos del sistema. El paciente solo ve los propios; recepción ve el ámbito de la clínica. Comprueba asunto, fecha, estado y acceso al detalle de la cita. Sin Telegram vinculado permanecen disponibles en la web. Un error de entrega no cancela ni confirma citas. Solo recepción o administración pueden autorizar un reintento después de revisar el envío.
 
-## Probar CU11: Consultar disponibilidad
+## 7. Configurar Telegram (CU27 y CU30)
 
-1. Cierra sesión e ingresa como paciente2.
-2. Abre Consultar disponibilidad.
-3. Selecciona Medicina General, Rosa Ejemplo y un lunes futuro con más de 24 horas de anticipación.
-4. Pulsa Buscar turnos.
-5. Deben aparecer los bloques de 30 minutos de los tramos activos 08:00-12:00 y 12:00-14:00.
+Sigue TELEGRAM.md para crear el bot, agregar sus variables al .env local y configurar el contacto oficial de recepción. Después de verificar el bot inicia `php bin/procesar_tareas.php` en otra terminal del proyecto. Ese proceso recibe las vinculaciones, envía los avisos y ejecuta los recordatorios y la inactividad diaria. Debe permanecer activo durante la prueba.
 
-Si se consulta un día sin horario, se informa que no hay turnos. Al consultar Pediatría para el mismo médico se comparte la ocupación: reservar en una especialidad ocupa el bloque del profesional para ambas.
+Como paciente abre Avisos por Telegram, autoriza, genera el enlace y pulsa Iniciar en el bot. Vuelve a comprobar la vinculación. Prueba la desactivación. Contactar con recepción debe mostrar el contacto oficial y abrir su chat, sin enviar mensajes automáticamente.
 
-## Probar CU12: Programar cita
+La conexión real del bot y los recorridos visuales de este bloque se completan en el equipo de la estudiante; las pruebas automatizadas no envían mensajes reales. La publicación del código y la revisión de los datos del servidor se realizarán después de terminar estas pruebas.
 
-1. Elige un turno libre, por ejemplo 09:00-09:30.
-2. Revisa paciente, médico, especialidad y fecha.
-3. El motivo es opcional. Pulsa Guardar reserva.
-4. Debe aparecer el código CM- y el estado Programada.
-5. Vuelve a consultar la disponibilidad: el turno reservado ya no debe ofrecerse.
+## Pruebas de desarrollo
 
-Una pantalla de disponibilidad no reserva la hora. Al guardar se vuelve a validar y una reserva competidora se rechaza sin duplicar registros. Un paciente inactivo o con multa pendiente no puede hacer nuevas reservas ordinarias.
+Solo sobre un servidor local y una base VACÍA y desechable terminada en _test, usando las variables documentadas en tests/http_smoke.py:
 
-## Probar CU13: Confirmar asistencia
+```powershell
+php tests/unit.php
+python tests/cu26_30_smoke.py
+node tests/counter_browser.mjs
+```
 
-1. En Mis citas abre la reserva y pulsa Confirmar asistencia.
-2. Debe pasar a Confirmada.
-3. El mismo horario sigue ocupado. La operación queda en Registro de cambios.
-
-No se confirma una cita ajena, cancelada, atendida o cuyo turno ya comenzó.
-
-## Probar CU14: Reprogramar cita
-
-1. Abre Reprogramar cita.
-2. Busca otro turno libre y selecciónalo.
-3. Escribe el motivo y guarda.
-4. La cita conserva su código, vuelve a Programada y muestra el turno anterior en su registro.
-5. El turno anterior vuelve a estar disponible y el nuevo queda ocupado.
-6. Puedes confirmar nuevamente la asistencia.
-
-El paciente conserva médico y especialidad. Recepción o administración pueden ofrecer otro médico de la misma especialidad, con aceptación registrada del paciente. Si el nuevo turno se ocupa, se conserva íntegra la reserva anterior.
-
-El plazo configurado se utiliza para cancelaciones. Una reprogramación dentro de ese plazo muestra una advertencia informativa y registra revisión, sin inventar una multa por reprogramar que no figura en RN15. Se conserva su trazabilidad.
-
-## Probar CU15: Cancelar cita
-
-1. Abre Cancelar cita.
-2. Escribe un motivo.
-3. Revisa la fecha: usa la cita futura de prueba con suficiente anticipación para comprobar una cancelación sin incidencia.
-4. Pulsa Confirmar cancelación.
-5. Debe quedar Cancelada y liberar el turno. El registro se conserva y ya no permite confirmar o reprogramar esa cita.
-
-La primera incidencia tardía válida genera advertencia y desde la segunda se registra una multa pendiente. Recepción valida causas clínicas, justificaciones y avisos previos. Las reservas realizadas con menos anticipación que el plazo se derivan a revisión antes de sancionar, según la propuesta del documento. Una ausencia médica registrada evita penalizar al paciente.
-
-Los avisos quedan encolados en PostgreSQL. El envío real de Telegram requiere sus próximos módulos. El pago presencial, la consulta completa de multas y la reactivación se completarán en sus casos de uso; esta versión no simula esos pagos.
-
-## Acceso de recepción y límites de esta versión
-
-Recepción y administración pueden consultar disponibilidad y programar para un paciente activo seleccionado por CI o nombre. Los pacientes solo consultan y gestionan sus citas propias, incluso si intentan cambiar identificadores en la dirección o el formulario. Cada operación requiere su permiso.
-
-El Médico conserva su cuenta y accederá a la agenda en CU18; no utiliza estas pantallas de reservas. El listado operativo de citas y el registro de una reserva apoyan CU12-CU15; los módulos completos de agenda, historial, reportes, atención e inasistencia siguen pendientes.
-
-Este paquete alcanza la meta práctica de implementar CU01-CU15 para una primera versión. No implica por sí solo un porcentaje oficial de evaluación. La documentación hasta diseño contempla los 30 casos.
+La prueba HTTP agrega los bloques anteriores y usa un token ficticio de prueba en el entorno del servidor y del proceso de pruebas: TELEGRAM_BOT_TOKEN=123456:PRUEBA_SIN_BOT_REAL_123456789 y TELEGRAM_BOT_USERNAME=ClinicaPruebaBot. Nunca usa un bot real. Node solo es necesario para esa prueba de JavaScript, no para ejecutar la aplicación. No ejecutes la batería sobre la base de tu proyecto ni sobre Render.

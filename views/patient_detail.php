@@ -14,6 +14,10 @@
         <div><dt>Citas vigentes</dt><dd><?= (int) $summary['vigentes'] ?></dd></div>
         <div><dt>Multas pendientes</dt><dd><?= (int) $summary['multas_pendientes'] ?></dd></div>
         </dl><p class="field-help patient-note">El estado del paciente, su cuenta de acceso y las multas son condiciones independientes. Desactivarlo conserva los registros relacionados.</p>
+        <div class="form-actions appointment-actions">
+        <?php if (App\AppointmentService::allowed($user,'CU24')): ?><a class="button quiet" href="/multas?paciente_id=<?= (int) $patient['id'] ?>">Advertencias y multas</a><?php endif; ?>
+        <?php if (!$patient['activo'] && App\AppointmentService::allowed($user,'CU25')): ?><a class="button primary" href="/pacientes/<?= (int) $patient['id'] ?>/reactivar">Reactivar paciente</a><?php endif; ?>
+        </div>
     </section>
 </div>
 <?php if ($patient['activo']): ?>

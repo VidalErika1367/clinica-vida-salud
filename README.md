@@ -16,11 +16,18 @@ Proyecto en PHP, PostgreSQL, HTML, CSS y JavaScript. Mantiene los cuatro roles d
 - Horarios (CU10): tramos semanales por médico activo, alineados a medias horas; búsqueda por médico, día y estado; alta, edición y cambio de estado. Rechaza superposiciones y cambios que dejen citas vigentes fuera de horario, mostrando las reservas afectadas.
 - Disponibilidad (CU11): especialidad, médico y fecha, bloques de 30 minutos, exclusión de horas pasadas, reservas de cualquier especialidad del médico y ausencias con solapamiento parcial.
 - Reservas ordinarias (CU12-CU15): programar, confirmar, reprogramar y cancelar con propiedad del paciente, permisos, motivo, versión del formulario y trazabilidad. Al guardar se revalida el turno. Se encolan avisos en la base; el envío externo de Telegram queda pendiente.
-- Instalación de las 23 tablas del modelo y sus reglas SQL mediante migraciones. `migracion` es una tabla técnica adicional para registrar qué scripts se aplicaron.
+- Atención e inasistencia (CU16-CU17): confirmación manual, turno iniciado o finalizado según la operación, médico limitado a sus propias citas, estado terminal protegido y registro transaccional de cambios, advertencias y multas.
+- Agenda médica (CU18): fecha, profesional y estado, citas asignadas y ausencias registradas; cada médico consulta únicamente su agenda.
+- Historial de citas (CU19): acceso propio del paciente o autorizado de recepción, filtros, pacientes inactivos y paginación de citas y cambios.
+- Reportes administrativos (CU20): actividad y totales por período, médico, especialidad y estado; pagos separados por fecha de pago, sin duplicar importes por los cambios históricos.
+- Solicitudes urgentes (CU21-CU22): contacto, solicitud pendiente separada de la cita, seguimiento, cierre o asignación con aceptación, disponibilidad revalidada, excepciones autorizadas y trazabilidad.
+- Multas y pagos (CU23-CU24): consulta propia o administrativa, importes decimales exactos, comprobante único, recepción presencial verificada, saldo calculado desde las deudas y conservación de advertencias.
+- Reactivación (CU25): búsqueda de inactivos, verificación de identidad y contacto, motivo, versión, fecha y auditoría, conservando las deudas y la cuenta.
+- Instalación de las 23 tablas del modelo y sus reglas SQL mediante migraciones. `migracion` registra los scripts aplicados. `historial_solicitud_urgente` conserva la auditoría técnica de las gestiones urgentes.
 
 Si ya instalaste el paquete anterior, sigue ACTUALIZAR.md para actualizar el código conservando tu configuración y tus cuentas. TRAZABILIDAD.md relaciona el código con el Word aportado.
 
-Esta etapa implementa CU01-CU15: acceso, usuarios, permisos, pacientes, perfil, médicos, especialidades, horarios, disponibilidad y gestión de reservas ordinarias. Atención, inasistencia, agenda médica, historial especializado, urgencias, consulta de multas, pago, reportes, reactivación, inactividad automática, contadores y Telegram todavía requieren sus módulos completos. La solicitud urgente será gestionada directamente por recepción; no se agrega un rol «Personal médico».
+Esta etapa implementa CU01-CU30. CU26–CU30 incluyen ausencias, vinculación de Telegram, avisos con reintento autorizado, contadores y contacto de recepción. TELEGRAM.md explica la configuración real del bot y el proceso de tareas que ejecuta recordatorios e inactividad; todavía deben configurarse y probarse en el entorno de la estudiante. La solicitud urgente será gestionada directamente por recepción; no se agrega un rol «Personal médico».
 
 ## 1. Revisa tus programas en Windows
 
@@ -122,7 +129,7 @@ Abre http://127.0.0.1:8000. Mantén la terminal abierta. Para detener el servido
 - CU02 y CU03: inicio y cierre de sesión.
 - CU04: creación, consulta, edición y deshabilitación de cuentas.
 - CU05: consulta y edición de la matriz con validación, auditoría y protección de administración; asignación del rol al usuario desde CU04.
-- CU06: gestión de las fichas de pacientes por administrador y recepcionista, con permisos, CI único, auditoría y conservación de registros relacionados. La reactivación corresponde a CU25 y sigue pendiente.
+- CU06: gestión de las fichas de pacientes por administrador y recepcionista, con permisos, CI único, auditoría y conservación de registros relacionados. La reactivación se realiza desde CU25, con verificación y motivo.
 - CU07: actualización del perfil propio del paciente, contacto de emergencia e información médica básica, conservando su identidad, su cuenta y los registros relacionados.
 - CU08: crear, consultar, buscar, editar, activar y desactivar médicos; asignar varias especialidades y conservar las relaciones históricas.
 - CU09: catálogo de especialidades, nombres normalizados únicos, búsqueda, edición y cambio de estado sin eliminación física.
@@ -132,6 +139,16 @@ Abre http://127.0.0.1:8000. Mantén la terminal abierta. Para detener el servido
 - CU13: ratificación de asistencia, manteniendo el turno ocupado.
 - CU14: nuevo turno validado, conservación de código y datos anteriores, estado Programada y aceptación registrada para cambiar de médico por recepción.
 - CU15: cancelación, liberación del turno, origen y aviso verificados, advertencia o multa según la política SQL existente.
+- CU16: registro manual de consulta realizada por médico asignado, recepción o administración; Atendida e historial, sin marcar el futuro ni duplicar eventos.
+- CU17: inasistencia verificada por recepción o administración tras finalizar el turno; advertencia, multa o revisión conforme a las reglas existentes.
+- CU18: agenda por fecha, médico y estado, con ausencias y acceso limitado al profesional.
+- CU19: historial del paciente conservado, incluso inactivo, con filtros y paginación.
+- CU20: reportes de actividad y pagos separados con filtros, totales completos y consultas consistentes.
+- CU21: solicitud personal urgente, incluso con restricción ordinaria, sin crear cita automáticamente.
+- CU22: seguimiento, cierre y asignación por recepción con aceptación del paciente y disponibilidad verificada.
+- CU23: registro de pago presencial íntegro, comprobante único, fecha, auditoría y actualización del saldo.
+- CU24: advertencias y multas propias o seleccionadas por recepción, con importes y pagos.
+- CU25: reactivación verificada, nueva fecha de actividad y conservación de las deudas y registros.
 
 ## Decisiones que se conservan
 
@@ -160,7 +177,7 @@ Entra como administrador o recepcionista y abre Pacientes. El listado incluye lo
 
 La ficha contiene CI, nombres, apellidos, nacimiento, sexo, teléfono, correo de contacto y dirección. El correo de contacto puede ser diferente del de acceso; editarlo no cambia la contraseña ni el rol de la cuenta. Las fichas se identifican visualmente mediante PA- seguido de su identificador numérico.
 
-Desde Ver ficha se puede desactivar al paciente indicando un motivo. Esto no deshabilita al usuario, no elimina multas y no cancela citas futuras. Un paciente inactivo puede consultar su cuenta. Editar sus datos no equivale a reactivarlo. La reactivación administrativa y la desactivación automática anual siguen en sus avances correspondientes.
+Desde Ver ficha se puede desactivar al paciente indicando un motivo. Esto no deshabilita al usuario, no elimina multas y no cancela citas futuras. Un paciente inactivo puede consultar su cuenta. Editar sus datos no equivale a reactivarlo. La reactivación administrativa se gestiona en CU25. La ejecución periódica de desactivación anual continúa pendiente.
 
 ## Mi perfil
 
@@ -204,7 +221,7 @@ En Consultar disponibilidad selecciona especialidad, médico y una fecha futura.
 
 El paciente reserva únicamente para su propia ficha. Recepción o administración pueden buscar un paciente activo por CI o nombre. La ficha debe estar activa y sin multas pendientes para una nueva reserva ordinaria. El médico y su especialidad deben estar activos y asociados. El servidor vuelve a comprobar disponibilidad antes de guardar y fija duración de 30 minutos, autor y estado Programada.
 
-Mis citas o Citas permiten localizar las reservas para operar. El paciente ve solo las propias; recepción y administración requieren permisos. Este listado operativo y el registro de cambios por cita no sustituyen todavía los módulos completos de agenda e historial CU18-CU19. La cuenta de Médico utilizará su agenda en su propio módulo.
+Mis citas o Citas permiten localizar las reservas para operar. El paciente ve solo las propias; recepción y administración requieren permisos. La agenda CU18 y el historial CU19 disponen de sus propios filtros y paginación. La cuenta de Médico accede a su agenda CU18 y al detalle de sus citas; CU16 permite registrar atención realizada.
 
 Confirmar asistencia transforma Programada en Confirmada si el turno aún no comenzó. Reprogramar valida otro turno y devuelve la cita a Programada. Se mantienen código, paciente, autor y fecha original; el historial conserva médico y horario anteriores. El paciente mantiene el mismo médico y especialidad; recepción puede cambiar de médico dentro de la especialidad registrando la aceptación del paciente. Los motivos y el origen quedan trazados.
 
@@ -214,6 +231,47 @@ Cancelar conserva la cita y libera la hora. Las cancelaciones tardías válidas 
 
 Las reservas creadas con menos anticipación que el plazo se registran para revisión antes de sancionar, según el tratamiento propuesto del documento. Ausencias médicas registradas y causas de la clínica no generan sanción al paciente. Los importes y plazos proceden de los parámetros existentes; no se añaden tarifas externas.
 
-Los cambios de estado y horario generan historial y avisos pendientes en PostgreSQL. La cola de avisos se conserva separada del envío externo. La vinculación y el procesamiento de Telegram siguen pendientes de CU27-CU30; este paquete no envía mensajes reales. El pago presencial de multas corresponde a CU23 y todavía no tiene su pantalla.
+Los cambios de estado y horario generan historial y avisos pendientes en PostgreSQL. La cola de avisos se conserva separada del envío externo. La vinculación y el procesamiento de Telegram siguen pendientes de CU27-CU30; este paquete no envía mensajes reales. El pago presencial de multas se registra desde CU23 y se consulta en CU24.
 
-Si Ana Ejemplo está inactiva, conservará perfil y consulta, pero no podrá hacer una nueva reserva. CU25 sigue pendiente. Para probar reservas utiliza una nueva cuenta ficticia de paciente activo, sin modificar manualmente el estado de Ana en la base.
+Si Ana Ejemplo está inactiva, conserva perfil, consultas y solicitudes urgentes, pero requiere reactivación CU25 y no tener deudas para nuevas reservas ordinarias. Recepción o administración pueden verificar y reactivar su ficha desde la interfaz.
+
+
+## Atención, agenda, historial y reportes
+
+En Agenda médica se elige una fecha y un estado. Recepción o administración pueden consultar un profesional o todos; el médico solo consulta sus propias citas y ausencias. Una cuenta sin profesional vinculado recibe una lista vacía y una indicación para administración. Una agenda vacía no significa que existan turnos libres.
+
+CU16 requiere confirmar que la consulta se realizó. La cita debe estar Programada o Confirmada y su turno ya debe haber comenzado. El médico solo puede registrar sus citas. Recepción y administración también pueden realizar el registro si tienen el permiso. El contador no marca una atención por sí solo. Se conservan las causas clínicas previamente validadas por recepción.
+
+CU17 requiere un turno finalizado, motivo y verificación de la ausencia del paciente y de la disponibilidad del médico. Si existe una ausencia médica en el intervalo, se rechaza la imputación al paciente. Las justificaciones verificadas no generan sanción. Se usa la política SQL existente: primera incidencia válida con advertencia, desde la segunda con multa; las reservas realizadas con poca anticipación se derivan a revisión. Los cambios se guardan con historial y avisos en una transacción y un segundo envío no duplica la incidencia.
+
+Historial de citas conserva las citas terminales y las de pacientes inactivos. El paciente solo consulta su ficha. Recepción selecciona un paciente por CI o nombre. Los resultados se muestran en páginas de 50 y el registro de cambios de una cita en páginas de 20.
+
+Los reportes CU20 requieren Administrador o Recepcionista y permiso. Actividad de citas usa la fecha del turno y permite filtrar médico, especialidad y estado. Los totales abarcan todos los resultados, aunque el listado esté paginado. Pagos de multas usa la fecha del pago y suma cada pago una sola vez. Una consulta del reporte usa una instantánea consistente de PostgreSQL. El pago presencial se registra desde CU23; no hay cobro por internet.
+
+La migración 005_atencion.sql añade una excepción delimitada al validador para que el médico asignado pueda cerrar la atención sin borrar una causa clínica ya validada. No permite crear o cambiar esa justificación. Las cuatro migraciones anteriores conservan sus bytes. Render aplica la migración nueva automáticamente al desplegar; en local, ejecuta bin/instalar.php tras copiar la actualización.
+
+
+## Solicitudes urgentes, pagos y reactivación
+
+El paciente abre Citas urgentes y envía motivo y contacto. La solicitud queda Pendiente de revisión; su envío no ocupa un turno. Se admite aunque la ficha esté inactiva o tenga multas. Un doble envío del mismo formulario devuelve la misma solicitud y evita duplicar la recepción. El paciente solo consulta sus solicitudes.
+
+Recepción o administración con CU22 revisan su cola. Pueden registrar seguimiento y mantener pendiente, cerrar con resolución sin cita o asignar un turno libre. Para asignar se exige aceptación del paciente. Si tiene restricciones ordinarias, se requiere registrar la excepción urgente autorizada con su motivo y responsable. No se elimina la deuda ni se reactiva por ese hecho. La disponibilidad mantiene los bloques, horario, especialidad, médico, ausencias y exclusión de superposiciones. Solicitud, cita Programada, historial y avisos se guardan atómicamente.
+
+En Advertencias y multas, el paciente consulta su propia situación. Recepción selecciona una ficha; la consulta de pagos puede tener acceso independiente CU23. Una advertencia no tiene importe. Cada multa muestra su estado, la cita de origen y, cuando existe, fecha y comprobante del pago. El saldo procede de las multas pendientes, no de un bloqueo manual.
+
+El pago se registra después de recibirlo presencialmente en recepción. Requiere importe íntegro exacto, comprobante único y confirmación de recepción. Se guarda la fecha actual del registro. El importe se normaliza como decimal y se compara sin usar cálculos de coma flotante. La transacción bloquea la multa y evita un segundo abono, incluso con dos conexiones simultáneas. Un fallo posterior revierte pago, estado, auditoría y aviso. Pagar conserva la inactividad y cualquier otra deuda.
+
+Reactivar pacientes permite buscar fichas inactivas, revisar datos y antecedentes, confirmar identidad y contacto y registrar el motivo. No es una nueva cuenta: conserva usuario, contraseña, habilitación, citas e incidencias. Registra reactivado_en como referencia de actividad y mantiene las multas. Un paciente ya activo no renueva su fecha mediante otro envío. CU25 tiene su búsqueda y formulario propios, independientes de CU06.
+
+006_gestiones.sql añade contacto y clave de envío a las solicitudes y un historial protegido de sus gestiones. Conserva las cinco migraciones anteriores. Ajusta únicamente la restricción de actividad para la asignación urgente por personal autorizado con motivo; las reservas ordinarias siguen exigiendo paciente activo y sin deuda.
+
+
+## Ausencias, Telegram y contadores (CU26–CU30)
+
+Ausencias médicas permite registrar un intervalo y consultar las citas afectadas. Cada cambio requiere acuerdo con el paciente y registra origen Clínica; la ausencia no marca al paciente como inasistente. Reprogramar valida un turno libre y conserva la especialidad, incluso cuando se sustituye al médico. El historial de gestión es protegido y los fallos conservan la cita pendiente.
+
+Avisos por Telegram utiliza autorización del paciente y un código aleatorio temporal de un solo uso, guardado como hash. El webhook exige un secreto propio; el modo polling permite pruebas locales sin túneles. Desactivar o enviar `/stop` revoca los envíos y los códigos pendientes. Avisos del sistema filtra por propietario o ámbito administrativo, muestra fecha, asunto y estado, y permite a recepción autorizar un reintento después de un error.
+
+El contador usa la hora del servidor y el horario guardado, cambia automáticamente de espera a duración del turno y se actualiza tras reprogramaciones. Nunca modifica el estado de una cita. Contactar con recepción abre únicamente el contacto oficial configurado, sin enviar mensajes ni registrar operaciones de citas.
+
+La migración `007_comunicaciones.sql` conserva las seis anteriores y agrega los registros técnicos de comunicaciones y gestión de ausencias. El actualizador conserva `.env`, Git y la base. También actualiza los archivos de despliegue para iniciar tareas al publicar el proyecto completo. Consulta [TELEGRAM.md](TELEGRAM.md) antes de configurar el servicio real.

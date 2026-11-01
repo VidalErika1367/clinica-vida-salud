@@ -944,8 +944,8 @@ def appointment_counts():
 
 check(guest.request('/disponibilidad')[0] == 303 and guest.request('/citas')[0] == 303,
       'Disponibilidad y gestión de citas requieren iniciar sesión')
-check(medical_access.request('/disponibilidad')[0] == 403 and medical_access.request('/citas')[0] == 403,
-      'La cuenta médica no utiliza operaciones de reservas de pacientes o recepción')
+check(medical_access.request('/disponibilidad')[0] == 403 and medical_access.request('/citas')[0] == 200,
+      'La cuenta médica consulta sus citas sin acceso a nuevas reservas ordinarias')
 check(patient_access.request(availability_url())[0] == 200,
       'Paciente inactivo conserva consulta de disponibilidad')
 check(reception.request(availability_url())[0] == 200 and admin.request(availability_url())[0] == 200,

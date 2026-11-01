@@ -2,6 +2,9 @@
 <?php if ($user['rol'] === 'paciente' && $user['paciente_id'] && !$user['paciente_activo']): ?>
 <div class="alert warning">Tu registro está inactivo para nuevas reservas. Solicita su reactivación en recepción. Puedes seguir accediendo a tu cuenta.</div>
 <?php endif; ?>
+<?php if (App\AppointmentService::allowed($user,'CU18')): ?>
+<section class="card quick-action"><div><h2>Revisa la agenda médica</h2><p>Consulta las citas y ausencias del día y abre las operaciones que tienes autorizadas.</p></div><a class="button primary" href="/agenda">Abrir agenda →</a></section>
+<?php endif; ?>
 <?php if (in_array($user['rol'], ['administrador','recepcionista'], true) && in_array('CU06', $user['permisos'], true)): ?>
 <section class="card quick-action"><div><h2>Gestiona los datos de los pacientes</h2><p>Busca sus fichas, actualiza sus datos y consulta su estado administrativo.</p></div><a class="button primary" href="/pacientes">Gestionar pacientes →</a></section>
 <?php endif; ?>
@@ -17,6 +20,7 @@
 </div>
 <?php endif; ?>
 <div class="dashboard-grid">
+    <?php if (App\AppointmentService::allowed($user,'CU21') || App\AppointmentService::allowed($user,'CU22')): ?><section class="card"><h2>Citas urgentes</h2><p><?= $user['rol']==='paciente' ? 'Envía una solicitud para coordinar atención con recepción.' : 'Revisa las solicitudes pendientes de coordinación.' ?></p><a class="button primary" href="/urgencias">Abrir solicitudes</a></section><?php endif; ?>
     <section class="card"><div class="section-heading"><h2>Tu cuenta</h2><span class="badge enabled">Sesión activa</span></div><dl class="account-details"><div><dt>Usuario</dt><dd><?= e($user['nombre_usuario']) ?></dd></div><div><dt>Correo</dt><dd><?= e($user['correo']) ?></dd></div><div><dt>Tipo de acceso</dt><dd><?= e($user['rol_nombre']) ?></dd></div></dl></section>
     <section class="card soft"><span class="eyebrow">ACCESO PERSONAL</span><h2>Tu información, bajo tu control.</h2><p>Al terminar, cierra tu sesión, especialmente si usas un equipo compartido.</p><form action="/salir" method="post"><?= csrf_field() ?><button class="button secondary" type="submit">Cerrar sesión</button></form></section>
 </div>

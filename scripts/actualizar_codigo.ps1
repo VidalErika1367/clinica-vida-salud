@@ -21,14 +21,22 @@ foreach ($migration in @('001_esquema.sql','002_reglas.sql','003_catalogos.sql',
         throw 'Los scripts de la base son distintos. Revisa el proyecto antes de actualizar su codigo.'
     }
 }
+foreach ($migration in Get-ChildItem -LiteralPath (Join-Path $sourceRoot 'database\migrations') -Filter '*.sql' -File) {
+    $targetMigration = Join-Path $targetRoot ('database\migrations\' + $migration.Name)
+    if (Test-Path -LiteralPath $targetMigration -PathType Leaf) {
+        $original = Get-FileHash -LiteralPath $targetMigration -Algorithm SHA256
+        $provided = Get-FileHash -LiteralPath $migration.FullName -Algorithm SHA256
+        if ($original.Hash -ne $provided.Hash) { throw ('La migracion existente es distinta: ' + $migration.Name) }
+    }
+}
 # Solo se reemplaza codigo; no se lee ni se copia .env, storage o la base.
-$codeFolders = @('src','views','public','config','bin','tests','scripts')
+$codeFolders = @('src','views','public','config','bin','tests','scripts','database','deploy')
 $files = @()
 foreach ($folder in $codeFolders) {
     $files += Get-ChildItem -LiteralPath (Join-Path $sourceRoot $folder) -File -Recurse |
         Where-Object { $_.Extension -ne '.pyc' -and $_.FullName -notmatch '[\\/]__pycache__[\\/]' }
 }
-foreach ($name in @('bootstrap.php','router.php','README.md','VALIDACION.md','TRAZABILIDAD.md','ACTUALIZAR.md')) {
+foreach ($name in @('bootstrap.php','router.php','.env.example','.gitattributes','.gitignore','README.md','VALIDACION.md','TRAZABILIDAD.md','ACTUALIZAR.md','TELEGRAM.md','DESPLEGAR_RENDER.md')) {
     $files += Get-Item -LiteralPath (Join-Path $sourceRoot $name)
 }
 $backupRoot = Join-Path $targetRoot ('storage\respaldo-codigo-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
@@ -63,4 +71,5 @@ try {
 }
 Write-Host 'Codigo actualizado. Se conserva la configuracion y la misma base de datos.'
 Write-Host "Respaldo del codigo anterior: $backupRoot"
-Write-Host 'Vuelve a iniciar PHP. Abre Consultar disponibilidad y Citas con una cuenta autorizada.'
+Write-Host 'Aplica las migraciones pendientes con php bin/instalar.php antes de iniciar PHP.'
+Write-Host 'Continua las pruebas en local. La publicacion se hara al terminar todos los casos.'
