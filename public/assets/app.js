@@ -1,3 +1,40 @@
+const navigationToggle = document.getElementById('navigation-toggle');
+const mainNavigation = document.getElementById('main-navigation');
+if (navigationToggle && mainNavigation) {
+    const mobileNavigation = window.matchMedia('(max-width: 760px)');
+    const navigationLabel = document.getElementById('navigation-label');
+    const sidebar = navigationToggle.closest('.sidebar');
+    let menuOpen = false;
+    const showMenu = open => {
+        menuOpen = mobileNavigation.matches && open;
+        mainNavigation.hidden = mobileNavigation.matches && !menuOpen;
+        navigationToggle.setAttribute('aria-expanded', String(!mainNavigation.hidden));
+        navigationLabel.textContent = menuOpen ? 'Cerrar' : 'Menú';
+    };
+    const updateNavigation = () => {
+        const focusInside = mainNavigation.contains(document.activeElement);
+        navigationToggle.hidden = !mobileNavigation.matches;
+        showMenu(false);
+        if (mobileNavigation.matches && focusInside) navigationToggle.focus();
+    };
+    navigationToggle.addEventListener('click', () => showMenu(!menuOpen));
+    mainNavigation.addEventListener('click', event => {
+        if (mobileNavigation.matches && event.target.closest('a')) showMenu(false);
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && menuOpen) {
+            showMenu(false);
+            navigationToggle.focus();
+        }
+    });
+    document.addEventListener('click', event => {
+        if (menuOpen && !sidebar.contains(event.target)) showMenu(false);
+    });
+    if (mobileNavigation.addEventListener) mobileNavigation.addEventListener('change', updateNavigation);
+    else mobileNavigation.addListener(updateNavigation);
+    updateNavigation();
+}
+
 document.querySelectorAll('[data-password-target]').forEach(button => {
     button.addEventListener('click', () => {
         const field = document.getElementById(button.dataset.passwordTarget);
@@ -25,6 +62,23 @@ if (specialtySelect) {
         document.getElementById('availability-search')?.requestSubmit();
     });
 }
+
+document.querySelectorAll('[data-report-filters]').forEach(form => {
+    const kind = form.querySelector('[name="tipo"]');
+    const update = () => {
+        form.querySelectorAll('[data-report-scope]').forEach(field => {
+            const scope = field.dataset.reportScope;
+            const visible = scope === kind.value || (scope === 'appointments' && kind.value !== 'pacientes');
+            field.hidden = !visible;
+            field.querySelectorAll('select, input').forEach(control => { control.disabled = !visible; });
+        });
+        form.querySelectorAll('[data-report-help]').forEach(help => {
+            help.hidden = help.dataset.reportHelp !== kind.value;
+        });
+    };
+    kind.addEventListener('change', update);
+    update();
+});
 
 // El reloj del servidor y performance.now() evitan depender del reloj del equipo.
 document.querySelectorAll('[data-counter-url]').forEach(panel => {

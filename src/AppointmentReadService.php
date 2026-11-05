@@ -113,9 +113,17 @@ final class AppointmentReadService
     {
         AppointmentService::actor($userId,'CU20');
         return self::snapshot(function () use ($input): array {
-            $filters=self::filters($input);
             $type=self::text($input,'tipo','citas');
-            if (!in_array($type,['citas','pagos'],true)) { throw new ValidationException(['tipo'=>'Selecciona un reporte válido.']); }
+            if (!in_array($type,['citas','pagos','pacientes'],true)) { throw new ValidationException(['tipo'=>'Selecciona un reporte válido.']); }
+            $filterInput=$input;
+            if ($type==='pacientes') {
+                unset($filterInput['medico_id'],$filterInput['especialidad_id'],$filterInput['estado']);
+            }
+            $filters=self::filters($filterInput);
+            $filters['estado_paciente']=$type==='pacientes' ? self::text($input,'estado_paciente','todos') : 'todos';
+            if ($type==='pacientes' && !in_array($filters['estado_paciente'],['todos','activos','inactivos'],true)) {
+                throw new ValidationException(['estado_paciente'=>'Selecciona un estado de paciente válido.']);
+            }
             $doctors=AppointmentReadRepository::doctors();
             $specialties=SpecialtyRepository::search('','todos');
             foreach (['medico_id'=>$doctors,'especialidad_id'=>$specialties] as $key=>$catalog) {
@@ -127,8 +135,11 @@ final class AppointmentReadService
             $page=self::page($input['pagina'] ?? null);
             return ['filters'=>$filters,'type'=>$type,'doctors'=>$doctors,'specialties'=>$specialties,
                 'summary'=>$type==='citas' ? AppointmentReadRepository::activity($filters) : null,
-                'listing'=>$type==='citas' ? AppointmentReadRepository::appointments($filters,$page)
-                    : AppointmentReadRepository::payments($filters,$page),'generatedAt'=>AvailabilityRepository::clock()['ahora']];
+                'listing'=>match ($type) {
+                    'citas'=>AppointmentReadRepository::appointments($filters,$page),
+                    'pagos'=>AppointmentReadRepository::payments($filters,$page),
+                    'pacientes'=>AppointmentReadRepository::registeredPatients($filters,$page),
+                },'generatedAt'=>AvailabilityRepository::clock()['ahora']];
         });
     }
 }

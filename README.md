@@ -15,11 +15,12 @@ Proyecto en PHP, PostgreSQL, HTML, CSS y JavaScript. Mantiene los cuatro roles d
 - Especialidades (CU09): catálogo con búsqueda, descripción, estado y nombres únicos por comparación sin mayúsculas ni espacios sobrantes. Desactivar conserva médicos y citas; el detalle muestra los turnos afectados.
 - Horarios (CU10): tramos semanales por médico activo, alineados a medias horas; búsqueda por médico, día y estado; alta, edición y cambio de estado. Rechaza superposiciones y cambios que dejen citas vigentes fuera de horario, mostrando las reservas afectadas.
 - Disponibilidad (CU11): especialidad, médico y fecha, bloques de 30 minutos, exclusión de horas pasadas, reservas de cualquier especialidad del médico y ausencias con solapamiento parcial.
-- Reservas ordinarias (CU12-CU15): programar, confirmar, reprogramar y cancelar con propiedad del paciente, permisos, motivo, versión del formulario y trazabilidad. Al guardar se revalida el turno. Se encolan avisos en la base; el envío externo de Telegram queda pendiente.
+- Reservas ordinarias (CU12-CU15): programar, confirmar, reprogramar y cancelar con propiedad del paciente, permisos, motivo, versión del formulario y trazabilidad. Al guardar se revalida el turno. Se encolan avisos en la base y el proceso de tareas los envía a los chats autorizados.
 - Atención e inasistencia (CU16-CU17): confirmación manual, turno iniciado o finalizado según la operación, médico limitado a sus propias citas, estado terminal protegido y registro transaccional de cambios, advertencias y multas.
 - Agenda médica (CU18): fecha, profesional y estado, citas asignadas y ausencias registradas; cada médico consulta únicamente su agenda.
-- Historial de citas (CU19): acceso propio del paciente o autorizado de recepción, filtros, pacientes inactivos y paginación de citas y cambios.
-- Reportes administrativos (CU20): actividad y totales por período, médico, especialidad y estado; pagos separados por fecha de pago, sin duplicar importes por los cambios históricos.
+- Historial de citas (CU19): acceso propio del paciente o autorizado de recepción, fecha de registro junto al turno, filtros, pacientes inactivos y paginación de citas y cambios.
+- Reportes administrativos (CU20): actividad y totales por período, médico, especialidad y estado; altas por fecha de registro de pacientes, incluso sin cuenta ni citas, con totales de activos e inactivos; pagos separados por fecha de pago, sin duplicar importes por los cambios históricos.
+- Ubicación de la clínica: dirección, ciudad y mapa configurables; los pacientes inactivos conservan el acceso y se muestra una alternativa de recepción cuando la dirección no está publicada.
 - Solicitudes urgentes (CU21-CU22): contacto, solicitud pendiente separada de la cita, seguimiento, cierre o asignación con aceptación, disponibilidad revalidada, excepciones autorizadas y trazabilidad.
 - Multas y pagos (CU23-CU24): consulta propia o administrativa, importes decimales exactos, comprobante único, recepción presencial verificada, saldo calculado desde las deudas y conservación de advertencias.
 - Reactivación (CU25): búsqueda de inactivos, verificación de identidad y contacto, motivo, versión, fecha y auditoría, conservando las deudas y la cuenta.
@@ -27,7 +28,7 @@ Proyecto en PHP, PostgreSQL, HTML, CSS y JavaScript. Mantiene los cuatro roles d
 
 Si ya instalaste el paquete anterior, sigue ACTUALIZAR.md para actualizar el código conservando tu configuración y tus cuentas. TRAZABILIDAD.md relaciona el código con el Word aportado.
 
-Esta etapa implementa CU01-CU30. CU26–CU30 incluyen ausencias, vinculación de Telegram, avisos con reintento autorizado, contadores y contacto de recepción. TELEGRAM.md explica la configuración real del bot y el proceso de tareas que ejecuta recordatorios e inactividad; todavía deben configurarse y probarse en el entorno de la estudiante. La solicitud urgente será gestionada directamente por recepción; no se agrega un rol «Personal médico».
+Esta etapa implementa CU01-CU30. CU26–CU30 incluyen ausencias, vinculación de Telegram, avisos con reintento autorizado, contadores y contacto de recepción. TELEGRAM.md explica la configuración del bot y el proceso de recordatorios e inactividad. La estudiante confirmó la vinculación y entrega real de avisos en local; falta comprobar la versión final en Render. La solicitud urgente es gestionada directamente por recepción; no se agrega un rol «Personal médico».
 
 ## 1. Revisa tus programas en Windows
 
@@ -177,7 +178,7 @@ Entra como administrador o recepcionista y abre Pacientes. El listado incluye lo
 
 La ficha contiene CI, nombres, apellidos, nacimiento, sexo, teléfono, correo de contacto y dirección. El correo de contacto puede ser diferente del de acceso; editarlo no cambia la contraseña ni el rol de la cuenta. Las fichas se identifican visualmente mediante PA- seguido de su identificador numérico.
 
-Desde Ver ficha se puede desactivar al paciente indicando un motivo. Esto no deshabilita al usuario, no elimina multas y no cancela citas futuras. Un paciente inactivo puede consultar su cuenta. Editar sus datos no equivale a reactivarlo. La reactivación administrativa se gestiona en CU25. La ejecución periódica de desactivación anual continúa pendiente.
+Desde Ver ficha se puede desactivar al paciente indicando un motivo. Esto no deshabilita al usuario, no elimina multas y no cancela citas futuras. Un paciente inactivo puede consultar su cuenta. Editar sus datos no equivale a reactivarlo. La reactivación administrativa se gestiona en CU25. TaskService realiza la revisión diaria de inactividad; su ejecución CLI local se comprobó sin servidor web. La continuidad en el alojamiento sigue pendiente.
 
 ## Mi perfil
 
@@ -231,7 +232,7 @@ Cancelar conserva la cita y libera la hora. Las cancelaciones tardías válidas 
 
 Las reservas creadas con menos anticipación que el plazo se registran para revisión antes de sancionar, según el tratamiento propuesto del documento. Ausencias médicas registradas y causas de la clínica no generan sanción al paciente. Los importes y plazos proceden de los parámetros existentes; no se añaden tarifas externas.
 
-Los cambios de estado y horario generan historial y avisos pendientes en PostgreSQL. La cola de avisos se conserva separada del envío externo. La vinculación y el procesamiento de Telegram siguen pendientes de CU27-CU30; este paquete no envía mensajes reales. El pago presencial de multas se registra desde CU23 y se consulta en CU24.
+Los cambios de estado y horario generan historial y avisos pendientes en PostgreSQL. La cola de avisos se conserva separada del envío externo. CU27-CU30 incorporan la vinculación y el procesamiento de Telegram, con recepción real comprobada en local y configuración remota pendiente. Las pruebas automatizadas usan transporte simulado. El pago presencial de multas se registra desde CU23 y se consulta en CU24.
 
 Si Ana Ejemplo está inactiva, conserva perfil, consultas y solicitudes urgentes, pero requiere reactivación CU25 y no tener deudas para nuevas reservas ordinarias. Recepción o administración pueden verificar y reactivar su ficha desde la interfaz.
 
@@ -275,3 +276,19 @@ Avisos por Telegram utiliza autorización del paciente y un código aleatorio te
 El contador usa la hora del servidor y el horario guardado, cambia automáticamente de espera a duración del turno y se actualiza tras reprogramaciones. Nunca modifica el estado de una cita. Contactar con recepción abre únicamente el contacto oficial configurado, sin enviar mensajes ni registrar operaciones de citas.
 
 La migración `007_comunicaciones.sql` conserva las seis anteriores y agrega los registros técnicos de comunicaciones y gestión de ausencias. El actualizador conserva `.env`, Git y la base. También actualiza los archivos de despliegue para iniciar tareas al publicar el proyecto completo. Consulta [TELEGRAM.md](TELEGRAM.md) antes de configurar el servicio real.
+
+## Ubicación de la clínica
+
+La opción del menú abre `/ubicacion` para los cuatro roles. Completa en tu `.env` local y, después, en las variables del servidor:
+
+```dotenv
+CLINICA_DIRECCION=
+CLINICA_CIUDAD="Santa Cruz de la Sierra, Bolivia"
+CLINICA_MAPA_URL=
+```
+
+Usa la dirección acordada para el caso de la clínica y, opcionalmente, un enlace HTTPS de Google Maps u OpenStreetMap. No se incluye una dirección ficticia sin definir. Si ambos datos están vacíos se informa que todavía no está publicada y se ofrece contactar con recepción. No requiere una migración.
+
+## Menú del celular
+
+Las opciones se agrupan en Menú en pantallas pequeñas. Se conserva la navegación lateral del escritorio y el control de permisos. Consulta [MENU_MOVIL.md](MENU_MOVIL.md) para instalar el parche y comprobarlo en el teléfono.

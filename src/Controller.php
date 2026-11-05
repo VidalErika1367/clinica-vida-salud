@@ -60,6 +60,12 @@ final class Controller
         }
         View::render('dashboard', ['title' => 'Mi panel', 'user' => $user, 'stats' => $stats]);
     }
+    public static function location(): void
+    {
+        $user=Auth::requireUser();
+        View::render('clinic_location',['title'=>'Ubicación de la clínica','section'=>'ubicacion',
+            'user'=>$user,'location'=>ClinicInfo::location()]);
+    }
     public static function users(): void
     {
         Auth::requireAdmin('CU04');

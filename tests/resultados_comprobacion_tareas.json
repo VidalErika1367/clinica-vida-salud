@@ -1,0 +1,66 @@
+{
+  "passed": 15,
+  "internal_checks_per_run": 8,
+  "results": [
+    {
+      "name": "Rechaza servidor remoto antes de modificar datos",
+      "passed": true
+    },
+    {
+      "name": "Rechaza carpeta sin bootstrap y conserva la copia",
+      "passed": true
+    },
+    {
+      "name": "Fallo de preparacion revierte pacientes, medico, citas y DDL",
+      "passed": true
+    },
+    {
+      "name": "Ejecuta el proceso real dos veces sin servidor PHP web",
+      "passed": true
+    },
+    {
+      "name": "Ocho verificaciones internas de mantenimiento correctas",
+      "passed": true
+    },
+    {
+      "name": "Inactiva solo la ficha antigua sin actividad y protege atencion reciente y futuro",
+      "passed": true
+    },
+    {
+      "name": "Dos procesos conservan un solo evento de inactividad",
+      "passed": true
+    },
+    {
+      "name": "Genera un recordatorio de cada ventana sin duplicados",
+      "passed": true
+    },
+    {
+      "name": "Token heredado con formato valido queda deshabilitado en los hijos; no hay intentos de envio",
+      "passed": true
+    },
+    {
+      "name": "La validacion de citas queda habilitada despues de la prueba",
+      "passed": true
+    },
+    {
+      "name": "Los fixtures y el mantenimiento no generan incumplimientos",
+      "passed": true
+    },
+    {
+      "name": "La base original conserva todas sus tablas sin cambios",
+      "passed": true
+    },
+    {
+      "name": "La salida no expone el token y el proceso padre conserva su entorno",
+      "passed": true
+    },
+    {
+      "name": "La utilidad puede repetirse con nuevos fixtures aislados y validacion activa",
+      "passed": true
+    },
+    {
+      "name": "La repeticion tambien conserva intacta la base original",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "passed": 10,
+  "results": [
+    {
+      "name": "Rechaza host remoto antes de conectar",
+      "passed": true
+    },
+    {
+      "name": "Fallo de fixture revierte datos y DDL de validación",
+      "passed": true
+    },
+    {
+      "name": "Crea fixtures únicamente en la copia local",
+      "passed": true
+    },
+    {
+      "name": "Crea dos citas y deja la validación activa",
+      "passed": true
+    },
+    {
+      "name": "Endpoint de contador calcula fase real en curso con acceso del paciente",
+      "passed": true
+    },
+    {
+      "name": "Endpoint calcula fase finalizada de la cita anterior",
+      "passed": true
+    },
+    {
+      "name": "Ambos bloques duran 30 minutos y conservan estado Programada",
+      "passed": true
+    },
+    {
+      "name": "Repetir en el mismo bloque no duplica citas",
+      "passed": true
+    },
+    {
+      "name": "La base original conserva sus citas sin modificaciones",
+      "passed": true
+    },
+    {
+      "name": "Los fixtures del contador no generan incidencias",
+      "passed": true
+    }
+  ]
+}

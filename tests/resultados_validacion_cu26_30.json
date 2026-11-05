@@ -296,7 +296,7 @@
       "passed": true
     },
     {
-      "name": "Búsqueda de paciente: prueba_3ebaf191-CLINICA",
+      "name": "Búsqueda de paciente: prueba_5a737965-CLINICA",
       "passed": true
     },
     {
@@ -1084,15 +1084,15 @@
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-16T10:30",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T10:30",
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-16T14:00",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T14:00",
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-16T08:15",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T08:15",
       "passed": true
     },
     {
@@ -1256,7 +1256,7 @@
       "passed": true
     },
     {
-      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-10-29T23:00'}",
+      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-02T19:26'}",
       "passed": true
     },
     {
@@ -2176,7 +2176,7 @@
       "passed": true
     },
     {
-      "name": "Abre formulario /ausencias/4/citas/92?medico_id=8&fecha=2026-11-08",
+      "name": "Abre formulario /ausencias/4/citas/92?medico_id=8&fecha=2026-11-12",
       "passed": true
     },
     {

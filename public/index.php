@@ -32,6 +32,7 @@ try {
         'POST /registro' => [Controller::class, 'register'],
         'POST /salir' => [Controller::class, 'logout'],
         'GET /panel' => [Controller::class, 'dashboard'],
+        'GET /ubicacion' => [Controller::class, 'location'],
         'GET /mi-perfil' => [ProfileController::class, 'form'],
         'POST /mi-perfil' => [ProfileController::class, 'save'],
         'GET /medicos' => [DoctorController::class, 'index'],

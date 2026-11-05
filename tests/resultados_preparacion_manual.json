@@ -1,0 +1,53 @@
+{
+  "passed": 12,
+  "results": [
+    {
+      "name": "Rechaza host remoto antes de conectar o escribir",
+      "passed": true
+    },
+    {
+      "name": "Rechaza origen configurado como destino",
+      "passed": true
+    },
+    {
+      "name": "Copia diferente: explica discrepancia y no crea fixtures",
+      "passed": true
+    },
+    {
+      "name": "Fallo al insertar: revierte citas y restaura validación SQL",
+      "passed": true
+    },
+    {
+      "name": "Verifica respaldo restaurado antes de crear citas",
+      "passed": true
+    },
+    {
+      "name": "Dos fixtures vencidos con anticipación suficiente y sin justificación",
+      "passed": true
+    },
+    {
+      "name": "La base original conserva dos citas y la copia mantiene sus validadores activos",
+      "passed": true
+    },
+    {
+      "name": "Repetir preparación no duplica ni reinicia citas",
+      "passed": true
+    },
+    {
+      "name": "Fixture 1: produce advertencia sin multa",
+      "passed": true
+    },
+    {
+      "name": "Fixture 2: produce segunda incidencia y multa",
+      "passed": true
+    },
+    {
+      "name": "La multa del fixture activa el bloqueo de reservas",
+      "passed": true
+    },
+    {
+      "name": "Repetir después de gestionar conserva estados terminales e historial",
+      "passed": true
+    }
+  ]
+}

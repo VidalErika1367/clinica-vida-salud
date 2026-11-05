@@ -18,7 +18,7 @@ final class AppointmentReadController
             'section'=>$section,'user'=>$user,'old'=>$old,'errors'=>[],'patient'=>null,'patients'=>[],
             'query'=>mb_substr(trim($old['q'] ?? ''),0,100),'absenceItems'=>[],'summary'=>null,'type'=>$old['tipo'] ?? 'citas',
             'generatedAt'=>AvailabilityRepository::clock()['ahora'],'states'=>AppointmentReadService::STATES,
-            'filters'=>['desde'=>$today,'hasta'=>$today,'estado'=>'todos','medico_id'=>null,'especialidad_id'=>null,'paciente_id'=>null],
+            'filters'=>['desde'=>$today,'hasta'=>$today,'estado'=>'todos','estado_paciente'=>'todos','medico_id'=>null,'especialidad_id'=>null,'paciente_id'=>null],
             'doctors'=>[],'specialties'=>[], 'listing'=>['items'=>[],'total'=>0,'page'=>1,'pages'=>1]];
         try {
             $result=match ($section) {

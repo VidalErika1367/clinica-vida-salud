@@ -51,6 +51,25 @@ final class AppointmentReadRepository
             count(*) FILTER(WHERE c.estado='cancelada') AS canceladas,
             count(*) FILTER(WHERE c.estado='inasistencia') AS inasistencias".self::JOINS.$where,$values)->fetch();
     }
+    public static function registeredPatients(array $filters, int $page): array
+    {
+        $where=' WHERE p.creado_en>=?::date AND p.creado_en<(?::date+1)';
+        $where.=match ($filters['estado_paciente']) {
+            'activos'=>' AND p.activo',
+            'inactivos'=>' AND NOT p.activo',
+            default=>'',
+        };
+        $values=[$filters['desde'],$filters['hasta']];
+        // La fecha de alta pertenece a la ficha: incluye pacientes sin cuenta ni citas.
+        $summary=Database::run('SELECT count(*) AS total,count(*) FILTER(WHERE p.activo) AS activos,
+            count(*) FILTER(WHERE NOT p.activo) AS inactivos FROM paciente p'.$where,$values)->fetch();
+        $items=Database::run('SELECT p.id,p.ci,p.nombres,p.apellidos,p.activo,p.creado_en
+            FROM paciente p'.$where.' ORDER BY p.creado_en DESC,p.id DESC LIMIT 50 OFFSET ?',
+            [...$values,($page-1)*50])->fetchAll();
+        return ['items'=>$items,'total'=>(int) $summary['total'],'activos'=>(int) $summary['activos'],
+            'inactivos'=>(int) $summary['inactivos'],'page'=>$page,
+            'pages'=>max(1,(int) ceil((int) $summary['total']/50))];
+    }
     public static function payments(array $filters, int $page): array
     {
         [$where,$values]=self::where($filters,'pm.pagado_en');

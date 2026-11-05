@@ -1,6 +1,6 @@
 # Correspondencia con el documento de Clínica Vida Salud
 
-Referencia principal: 2DO PARCIAL_SALUD.docx, proporcionado el 24 de octubre de 2026. Se conservan sus cuatro roles, 30 casos de uso, 26 reglas de negocio y 23 tablas de dominio. La corrección confirmada por la estudiante establece que la recepcionista gestiona directamente las solicitudes urgentes.
+Referencia de diseño: 2DO PARCIAL_SALUD.docx, proporcionado el 24 de octubre de 2026. Referencia de cierre: Clinica_Vida_Salud_Documento_Actualizado.pdf. Se conservan cuatro roles, 30 casos de uso, 26 reglas de negocio y 23 tablas de dominio. La recepcionista gestiona directamente las solicitudes urgentes.
 
 | Caso | Implementación actual | Componentes principales |
 |---|---|---|
@@ -22,8 +22,8 @@ Referencia principal: 2DO PARCIAL_SALUD.docx, proporcionado el 24 de octubre de 
 | CU16 Registrar atención realizada | Verificación manual, cita no futura, propietario médico, permisos, Atendida e historial atómicos; conserva causas clínicas anteriores. | AppointmentService::attend, AppointmentController::finish, vista appointment_finish, migración 005 |
 | CU17 Registrar inasistencia | Turno finalizado, verificación, motivo y origen, ausencia médica comprobada, incidencia única y política de advertencia/multa/revisión. | AppointmentService::noShow, tr_sancionar_cita, vista appointment_finish |
 | CU18 Consultar agenda médica | Citas y ausencias por fecha y médico; médico limitado a su propio profesional. | AppointmentReadController, AppointmentReadService::agenda, AppointmentReadRepository, vista appointment_agenda |
-| CU19 Consultar historial de citas | Paciente propio o seleccionado por recepción, conservación de inactivos y terminales, filtros y paginación de citas y cambios. | AppointmentReadService::history, AppointmentReadRepository, vista appointment_historial |
-| CU20 Generar reportes administrativos | Actividad y totales completos; pagos por separado, filtros, cero resultados e instantánea consistente. | AppointmentReadService::report, AppointmentReadRepository, vista appointment_reportes |
+| CU19 Consultar historial de citas | Paciente propio o seleccionado por recepción, fecha de registro junto al turno, conservación de inactivos y terminales, filtros y paginación de citas y cambios. | AppointmentReadService::history, AppointmentReadRepository, vista appointment_historial y fragmento _appointment_listing |
+| CU20 Generar reportes administrativos | Actividad de citas; altas por paciente.creado_en incluyendo fichas sin cuenta ni citas; pagos por separado; filtros, totales completos, paginación, cero resultados e instantánea consistente. | AppointmentReadService::report, AppointmentReadRepository::registeredPatients, vista appointment_reportes |
 | CU21 Solicitar cita urgente | Motivo y contacto, solicitud pendiente propia incluso con restricción, doble envío controlado y aviso, sin crear turno. | UrgentController, UrgentService::create, UrgentRepository, vistas urgent_form e urgent_index |
 | CU22 Gestionar solicitud urgente | Seguimiento, cierre o asignación aceptada; turno revalidado, excepción urgente verificada y guardado atómico de solicitud/cita/gestión/avisos. | UrgentService::manage, AppointmentRepository::createUrgent, vista urgent_detail, historial_solicitud_urgente |
 | CU23 Registrar pago de multa | Importe íntegro decimal, comprobante único, fecha, recepción verificada, bloqueo, auditoría y rechazo de doble pago. | FineController, FineService::pay, FineRepository, sp_registrar_pago, vista fine_payment |
@@ -45,16 +45,16 @@ Se mantienen como operaciones necesarias CU02 y CU03 para todos los roles, y CU0
 
 Los cambios se guardan en una transacción y cada permiso modificado genera un evento con responsable. La versión del formulario permite rechazar una edición antigua en vez de sobrescribir cambios más recientes. Los permisos se vuelven a consultar en la siguiente petición.
 
-## Puntos pendientes de unificar en el Word
+## Criterios unificados en el documento actualizado
 
-- El texto de CU22 y la tabla del modelo de negocio aún mencionan «personal responsable»; deben indicar gestión directa de recepción, como el diagrama revisado.
-- El alcance excluye «cobros» de forma general. Debe precisar que sí se registra el pago presencial de multas, sin incorporar facturación médica general ni pagos por internet.
-- Modelo de negocio es el apartado 3; algunos títulos y diagramas todavía usan 1.1 y 1.2.
+- CU22 establece gestión directa de recepción, conforme al diagrama revisado.
+- Se registra el pago presencial de multas, sin incorporar facturación médica general ni pagos por internet.
+- El índice actualizado distingue los apartados de implementación, pruebas y cierre.
 - Los valores de 24 horas para cancelar y Bs 20 por multa siguen siendo propuestas iniciales configurables.
 
 ## Límite de la comprobación
 
-Las pruebas del paquete verifican CU01-CU25. Ausencias médicas, Telegram, avisos completos, contadores, contacto con recepción y ejecución periódica de inactividad continúan pendientes. Una tabla instalada o un permiso marcado no acredita un caso completo.
+Las pruebas del paquete verifican CU01-CU30 y los tres ajustes de sincronización. VALIDACION.md distingue pruebas automatizadas, evidencias manuales locales aportadas por la estudiante y comprobaciones pendientes del servidor. Una tabla instalada o un permiso marcado no acredita un caso completo.
 
 CU06 se implementó según su ficha en el apartado 4.3, con actores Administrador y Recepcionista, búsqueda por CI/nombre/apellido y conservación de citas y multas. Los campos corresponden al alcance 1.4.3 y a la tabla paciente. La estudiante confirmó registro, búsqueda, edición y desactivación de un paciente ficticio, y consulta del registro inactivo desde Recepción en su instalación Windows.
 
@@ -78,21 +78,21 @@ La confirmación registra la ratificación con origen Paciente y conserva en el 
 
 El documento fija el plazo para cancelación y menciona comprobar el plazo aplicable al reprogramar sin definir una sanción independiente. La implementación informa y registra revisión de reprogramaciones dentro del plazo, conservando el historial, sin inventar una multa adicional. Las sanciones se generan solo en las situaciones definidas por RN15-RN17 y los tratamientos propuestos existentes.
 
-El alta y los cambios de citas generan avisos pendientes en la misma transacción. El envío real, la vinculación y el contacto por Telegram quedan en CU27-CU30. No se considera probado el envío externo. La agenda CU18 y el historial CU19 se completan en este bloque. La consulta de advertencias y multas CU24 se completa en el bloque CU21-CU25.
+El alta y los cambios de citas generan avisos pendientes en la misma transacción. CU27-CU30 incorporan vinculación, envío y contacto por Telegram; la batería usa transporte simulado. La entrega real local consta en las evidencias manuales de VALIDACION.md; el servidor todavía requiere comprobación.
 
-Las pruebas de citas vencidas e incidencias usan datos históricos ficticios preparados mediante SQL. Las reservas ordinarias y los cambios de CU12-CU15 sí se ejercitan por HTTP; las citas antiguas de preparación no acreditan los módulos de atención e inasistencia. CU11-CU15 todavía requieren revisión en la instalación Windows de la estudiante.
+Las pruebas de citas vencidas e incidencias usan datos históricos ficticios preparados mediante SQL. Las reservas ordinarias y los cambios de CU12-CU15 se ejercitan por HTTP; preparar citas antiguas no acredita por sí solo sus pantallas. Los recorridos manuales posteriores de Windows, incluyendo reserva y cancelación, constan en VALIDACION.md.
 
 
-CU16-CU20 siguen las fichas del apartado 4.3 del documento. La referencia de inactividad se deriva de max(cita.fin) para atenciones realizadas, como ya establece sp_desactivar_inactivos; no se agrega una segunda fecha manual ni se programa todavía esa tarea. La migración 005 conserva los controles y datos anteriores y permite únicamente mantener una causa clínica anterior al registrar una atención.
+CU16-CU20 siguen las fichas del apartado 4.3 del documento. La referencia de inactividad se deriva de max(cita.fin) para atenciones realizadas, como ya establece sp_desactivar_inactivos; no se agrega una segunda fecha manual. TaskService programa su comprobación periódica. La migración 005 conserva los controles y datos anteriores y permite únicamente mantener una causa clínica anterior al registrar una atención.
 
-Los cambios de CU16-CU17 se ejercitan por HTTP con datos ficticios históricos. Se verifican rechazo de atenciones futuras y de inasistencias antes de terminar el turno, propiedad del médico, permisos, CSRF, versiones y reversión ante fallo del aviso. CU18-CU20 se verifican con pacientes inactivos, citas ajenas, listas vacías, más de una página y pagos asociados a citas con varios cambios. La revisión de las pantallas en Windows y la aplicación al servicio Render corresponden al siguiente paso de la estudiante.
+Los cambios de CU16-CU17 se ejercitan por HTTP con datos ficticios históricos. Se verifican rechazo de atenciones futuras y de inasistencias antes de terminar el turno, propiedad del médico, permisos, CSRF, versiones y reversión ante fallo del aviso. CU18-CU20 se verifican con pacientes inactivos, citas ajenas, listas vacías, más de una página y pagos asociados a citas con varios cambios. La revisión manual local de Windows consta en VALIDACION.md; la versión definitiva de Render sigue pendiente.
 
 
 CU21-CU25 siguen las fichas del apartado 4.3. La solicitud no constituye una reserva; la asignación exige turno libre, aceptación y responsable. La recepción registra la coordinación, sin un nuevo rol de personal médico. Para restricciones ordinarias se registra una excepción urgente autorizada; no se paga ni reactiva implícitamente. El historial técnico de solicitudes conserva cada gestión, evitando sobrescribir seguimientos anteriores.
 
 CU23 registra la fecha actual del pago presencial, monto íntegro y comprobante único. La aplicación no procesa cobros bancarios. Los pagos se integran con el reporte CU20 existente. CU24 calcula saldo y estados desde incidencias, multas y pagos, preservando el alcance del paciente. CU25 usa el procedimiento de reactivación existente, con autorización, bloqueo, versión y verificación antes de invocarlo.
 
-La revisión manual local del bloque anterior confirmó la reserva CM-000001 para Luis Prueba con Rosa Ejemplo el 02/11/2026 a las 09:00, su presencia en agenda e historial y un reporte con una cita Programada. La prueba manual de atención e inasistencia queda pendiente por el horario; sus escenarios se ejercitaron con fixtures históricos en las pruebas automatizadas. Los nuevos CU21-CU25 requieren aplicar el paquete local y recorrer sus pantallas con la estudiante. La publicación se hará al completar todos los casos, según su indicación.
+La revisión manual local confirmó CM-000001 en agenda, historial y reporte; SU-000001 y su asignación a CM-000002 con excepción documentada; saldo cero y reactivación de Ana Ejemplo. El 04/11/2026 se comprobó la atención realizada en la base original y, en una copia restaurada, primera advertencia, segunda incidencia con multa, bloqueo, pago y reserva posterior habilitada. Los detalles y el alcance de estas pruebas constan en VALIDACION.md.
 
 
 ## CU26–CU30
@@ -107,4 +107,15 @@ Fuente: 2DO PARCIAL_SALUD.docx, páginas físicas 42–44, catálogo de CU25–C
 | CU29 Consultar contadores de la cita | CounterService; /citas/{id}/contador; _appointment_counter; app.js | Reloj del servidor, espera/bloque/finalizado, cancelación oculta, actualización de horarios y ningún cambio automático de estado |
 | CU30 Contactar con recepción por Telegram | TelegramService::contact; /contacto-recepcion | Contacto oficial validado, apertura del chat externo y operaciones registradas después en la web |
 
-TaskService y bin/procesar_tareas.php ejecutan recordatorios e inactividad periódica usando las reglas existentes. Los envíos externos se verifican con transporte simulado en pruebas; la conexión real y los recorridos de Windows quedan sujetos a configuración y revisión local. Las migraciones 001–006 no cambian.
+TaskService y bin/procesar_tareas.php ejecutan recordatorios e inactividad periódica usando las reglas existentes. La batería usa transporte simulado. La estudiante confirmó en local la vinculación y recepción de seis avisos el 01/11/2026 y, posteriormente, dos ciclos CLI independientes sin servidor web y sin duplicados en la copia de pruebas. Faltan Telegram y continuidad real del trabajador en internet.
+
+## Ajustes de sincronización del 04/11/2026
+
+| Pendiente del documento | Implementación y comprobación del paquete | Estado de instalación |
+|---|---|---|
+| Reporte de pacientes registrados | CU20, tipo pacientes: fecha de alta de la ficha, todos/activos/inactivos, pacientes sin cuenta ni citas, totales completos y páginas de 50 | Instalado y comprobado en Windows: tres altas, incluida Marta sin cuenta ni citas |
+| Ubicación de la clínica | GET /ubicacion, Controller::location, ClinicInfo y vista clinic_location; acceso de los cuatro roles y mapa validado | Instalado y comprobado en Windows; mapa proporcionado por la estudiante abre el punto correcto |
+| Fecha de registro en historial | CU19: columna tomada de cita.creado_en; conserva los filtros por fecha del turno | Instalado y comprobado en Windows con CM-000002 |
+| Navegación móvil | Menú/Cerrar, opciones agrupadas, controles accesibles y permisos conservados | Parche instalado con respaldo; apertura, cierre y navegación confirmados por la estudiante en Honor X5c |
+
+Estos ajustes no añaden casos de uso ni tablas. Las migraciones 001–007 conservan sus bytes. El documento académico PDF y los capítulos editables incorporarán las evidencias al finalizar, mediante texto para copiar y pegar por petición de la estudiante; los archivos de seguimiento del repositorio ya distinguen las comprobaciones locales de los pendientes del servidor. No se declara actualizado Render por haber preparado el código.
