@@ -148,3 +148,55 @@ document.querySelectorAll('[data-counter-url]').forEach(panel => {
     // Al volver a mostrar la pestaña, se sincroniza de inmediato.
     document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 });
+
+
+// La elección del perfil organiza el formulario, pero NO concede permisos.
+// El backend sigue autenticando y determinando los permisos reales.
+document.querySelectorAll('[data-profile-login]').forEach(layout => {
+    const allowed = {
+        administrador: 'Administrador',
+        recepcionista: 'Recepcionista',
+        medico: 'Médico',
+        paciente: 'Paciente'
+    };
+    const selectStep = layout.querySelector('[data-profile-step="select"]');
+    const loginStep = layout.querySelector('[data-profile-step="login"]');
+    const next = layout.querySelector('[data-profile-continue]');
+    const back = layout.querySelector('[data-profile-back]');
+    const roleInput = layout.querySelector('[data-profile-hidden-role]');
+    const roleTitle = layout.querySelector('[data-profile-role-label]');
+    const identity = layout.querySelector('[data-profile-identity]');
+    const indicators = layout.querySelectorAll('[data-profile-indicator]');
+    const choices = layout.querySelectorAll('[data-profile-option]');
+    const patientOnly = layout.querySelectorAll('[data-profile-patient-only]');
+    let selected = Object.hasOwn(allowed, layout.dataset.initialRole) ? layout.dataset.initialRole : '';
+
+    const updateChoice = () => {
+        choices.forEach(choice => choice.setAttribute('aria-pressed', String(choice.dataset.profileOption === selected)));
+        roleInput.value = selected;
+        roleTitle.textContent = allowed[selected] || 'usuario';
+        patientOnly.forEach(item => { item.hidden = selected !== 'paciente'; });
+        next.disabled = !selected;
+    };
+    const showStep = (step, focus = true) => {
+        selectStep.hidden = step !== 'select';
+        loginStep.hidden = step !== 'login';
+        indicators.forEach(item => {
+            if (item.dataset.profileIndicator === step) item.setAttribute('aria-current', 'step');
+            else item.removeAttribute('aria-current');
+            if (item.dataset.profileIndicator === 'select') item.dataset.done = String(step === 'login');
+        });
+        if (focus) {
+            if (step === 'login') identity.focus();
+            else (layout.querySelector('[data-profile-option][aria-pressed="true"]') || choices[0]).focus();
+        }
+    };
+    choices.forEach(choice => choice.addEventListener('click', () => {
+        selected = choice.dataset.profileOption;
+        updateChoice();
+    }));
+    next.addEventListener('click', () => { if (selected) showStep('login'); });
+    back.addEventListener('click', () => showStep('select'));
+    updateChoice();
+    showStep(layout.dataset.showLogin === 'true' ? 'login' : 'select', false);
+});
