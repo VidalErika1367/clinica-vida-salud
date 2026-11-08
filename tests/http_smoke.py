@@ -296,6 +296,48 @@ weak_edit_response = admin.request(f'/usuarios/{reception_id}/editar', weak_edit
 check(weak_edit_response[0] == 422 and 'le falta' in weak_edit_response[1] and Browser().login(PREFIX + '_recepcionista', new_password)[0][0] == 303,
       'Administrador no puede asignar una contraseña débil y la anterior se conserva')
 
+# CU04: filtro por rol en el listado de usuarios (GET, combinable con el texto, valores inválidos ignorados).
+def listed_users(path):
+    status, body, _ = admin.request(path)
+    rows = body.split('<tbody>', 1)[1] if '<tbody>' in body else ''
+    return status, body, {html.unescape(x) for x in re.findall(r'<td><strong>([^<]+)</strong></td>', rows)}
+
+
+def users_with_role(code):
+    return {x['nombre_usuario'] for x in sql('SELECT u.nombre_usuario FROM usuario u JOIN rol r ON r.id=u.rol_id WHERE r.codigo=?', [code])}
+
+
+all_status, all_body, all_users = listed_users('/usuarios')
+check(all_status == 200 and all_users == {x['nombre_usuario'] for x in sql('SELECT nombre_usuario FROM usuario')},
+      'Usuarios: sin filtro lista todas las cuentas')
+check('method="get"' in all_body and '<option value="">Todos</option>' in all_body, 'Usuarios: el filtro se envía por GET con la opción Todos')
+for code, label in [('administrador', 'Administrador'), ('recepcionista', 'Recepcionista'), ('medico', 'Médico'), ('paciente', 'Paciente')]:
+    check(f'<option value="{code}" >{label}</option>' in all_body, 'Usuarios: el select ofrece el rol ' + label + ' desde la tabla rol')
+    role_status, role_body, role_users = listed_users('/usuarios?rol=' + code)
+    check(role_status == 200 and role_users == users_with_role(code) and role_users,
+          'Usuarios: filtrar por ' + label + ' muestra solo cuentas de ese rol')
+    check(f'<option value="{code}" selected>{label}</option>' in role_body, 'Usuarios: ' + label + ' queda seleccionado al recargar')
+_, _, by_text = listed_users('/usuarios?q=' + PREFIX)
+check({patient_name, PREFIX + '_recepcionista', PREFIX + '_medico'} <= by_text and ADMIN_USER not in by_text,
+      'Usuarios: la búsqueda por texto sigue funcionando sin rol')
+_, combo_body, combo = listed_users('/usuarios?q=' + PREFIX + '&rol=paciente')
+check(combo == {patient_name} and f'value="{PREFIX}"' in combo_body and '<option value="paciente" selected>' in combo_body,
+      'Usuarios: el texto y el rol se combinan y se conservan en el formulario')
+check(listed_users('/usuarios?q=' + PREFIX + '&rol=medico')[2] == {PREFIX + '_medico'}, 'Usuarios: texto y rol Médico muestran solo ese médico')
+check(listed_users('/usuarios?q=' + PREFIX + '_recepcionista&rol=paciente')[2] == set(), 'Usuarios: un texto de otro rol no devuelve cuentas')
+ignored_ok = True
+for bad in ['superusuario', 'PACIENTE', '1', '0', '', "paciente' OR '1'='1", 'paciente%27%3B--', '%00', 'x' * 500]:
+    bad_status, _, bad_users = listed_users('/usuarios?rol=' + urllib.parse.quote(bad, safe='%'))
+    ignored_ok = ignored_ok and bad_status == 200 and bad_users == all_users
+check(ignored_ok, 'Usuarios: un rol inexistente, vacío o con inyección se ignora y se listan todos')
+array_status, _, array_users = listed_users('/usuarios?rol[]=paciente&rol[]=medico')
+check(array_status == 200 and array_users == all_users, 'Usuarios: un rol enviado como arreglo se ignora')
+for denied_name, denied_user, denied_password in [('médico', PREFIX + '_medico', PASSWORD), ('recepcionista', PREFIX + '_recepcionista', new_password)]:
+    denied = Browser()
+    check(denied.login(denied_user, denied_password)[0][0] == 303 and denied.request('/usuarios?rol=paciente')[0] == 403,
+          'Usuarios: ' + denied_name + ' con sesión sigue recibiendo 403 con el filtro')
+check(Browser().request('/usuarios?rol=paciente')[0] == 303, 'Usuarios: sin sesión el filtro redirige al ingreso')
+
 # CU06: datos administrativos, permisos e historial conservado.
 check(admin.request('/pacientes')[0] == 200 and reception.request('/pacientes')[0] == 200,
       'Administrador y recepción consultan el listado de pacientes')

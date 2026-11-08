@@ -117,7 +117,8 @@ final class Controller
             'user'=>$user,'location'=>ClinicInfo::location()]);
     }
     /**
-     * Lista usuarios con búsqueda por texto (CU04). Solo administradores.
+     * Lista usuarios con búsqueda por texto y filtro por rol (CU04). Solo administradores.
+     * El rol llega por GET (?rol=codigo) para poder compartir el enlace; un valor que no sea un rol existente se ignora.
      *
      * @return void
      * @throws HttpException 403 sin permiso CU04
@@ -126,8 +127,10 @@ final class Controller
     {
         Auth::requireAdmin('CU04');
         $query = is_string($_GET['q'] ?? null) ? mb_substr(trim($_GET['q']), 0, 100) : '';
-        $users = UserService::search($query);
-        View::render('users', ['title' => 'Usuarios', 'users' => $users, 'query' => $query]);
+        $roles = UserService::roles();
+        $roleCode = UserService::roleFilter($_GET['rol'] ?? null, $roles);
+        $users = UserService::search($query, $roleCode);
+        View::render('users', ['title' => 'Usuarios', 'users' => $users, 'query' => $query, 'roles' => $roles, 'roleCode' => $roleCode]);
     }
     /**
      * Muestra el formulario de alta o edición de un usuario (CU04).

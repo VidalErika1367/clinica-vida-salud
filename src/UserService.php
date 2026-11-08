@@ -20,12 +20,27 @@ final class UserService
      */
     public static function roles(): array { return RoleRepository::all(); }
     /**
-     * Busca usuarios por nombre de usuario o correo (CU04).
+     * Busca usuarios por nombre de usuario o correo y, opcionalmente, por rol (CU04).
      *
      * @param string $query texto de búsqueda
+     * @param string|null $roleCode código de rol ya validado con roleFilter(); null para todos los roles
      * @return array usuarios
      */
-    public static function search(string $query): array { return UserRepository::search($query); }
+    public static function search(string $query, ?string $roleCode = null): array { return UserRepository::search($query, $roleCode); }
+    /**
+     * Valida el filtro de rol del listado: solo se acepta el código de un rol existente; cualquier otro valor
+     * (vacío, ajeno, con comillas, un arreglo) se ignora y se muestran todos los roles.
+     *
+     * @param mixed $value valor recibido en el parámetro GET "rol"
+     * @param array $roles roles de la tabla rol (cada uno con la clave "codigo")
+     * @return string|null código del rol elegido, o null para "Todos"
+     */
+    public static function roleFilter(mixed $value, array $roles): ?string
+    {
+        if (!is_string($value) || $value === '') { return null; }
+        foreach ($roles as $role) { if (hash_equals((string) $role['codigo'], $value)) { return (string) $role['codigo']; } }
+        return null;
+    }
     /**
      * Totales de usuarios para el panel del administrador.
      *

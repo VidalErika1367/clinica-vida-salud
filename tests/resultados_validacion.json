@@ -1,5 +1,5 @@
 {
-  "passed": 344,
+  "passed": 375,
   "results": [
     {
       "name": "Panel privado exige iniciar sesión",
@@ -39,6 +39,34 @@
     },
     {
       "name": "Formulario inválido no devuelve la contraseña al navegador",
+      "passed": true
+    },
+    {
+      "name": "El registro rechaza una contraseña sin mayúscula ni símbolo y explica qué falta",
+      "passed": true
+    },
+    {
+      "name": "El registro rechaza una contraseña de 12 letras sin símbolo ni número y explica qué falta",
+      "passed": true
+    },
+    {
+      "name": "El registro rechaza una contraseña sin carácter especial y explica qué falta",
+      "passed": true
+    },
+    {
+      "name": "El registro rechaza una contraseña de menos de 8 caracteres y explica qué falta",
+      "passed": true
+    },
+    {
+      "name": "El registro con contraseña débil no crea cuentas",
+      "passed": true
+    },
+    {
+      "name": "Una cuenta antigua con contraseña de 12 letras sin símbolo sigue pudiendo iniciar sesión",
+      "passed": true
+    },
+    {
+      "name": "El acceso mantiene el límite de 72 bytes",
       "passed": true
     },
     {
@@ -270,6 +298,102 @@
       "passed": true
     },
     {
+      "name": "Administrador no puede asignar una contraseña débil y la anterior se conserva",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: sin filtro lista todas las cuentas",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: el filtro se envía por GET con la opción Todos",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: el select ofrece el rol Administrador desde la tabla rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: filtrar por Administrador muestra solo cuentas de ese rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: Administrador queda seleccionado al recargar",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: el select ofrece el rol Recepcionista desde la tabla rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: filtrar por Recepcionista muestra solo cuentas de ese rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: Recepcionista queda seleccionado al recargar",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: el select ofrece el rol Médico desde la tabla rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: filtrar por Médico muestra solo cuentas de ese rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: Médico queda seleccionado al recargar",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: el select ofrece el rol Paciente desde la tabla rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: filtrar por Paciente muestra solo cuentas de ese rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: Paciente queda seleccionado al recargar",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: la búsqueda por texto sigue funcionando sin rol",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: el texto y el rol se combinan y se conservan en el formulario",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: texto y rol Médico muestran solo ese médico",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: un texto de otro rol no devuelve cuentas",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: un rol inexistente, vacío o con inyección se ignora y se listan todos",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: un rol enviado como arreglo se ignora",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: médico con sesión sigue recibiendo 403 con el filtro",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: recepcionista con sesión sigue recibiendo 403 con el filtro",
+      "passed": true
+    },
+    {
+      "name": "Usuarios: sin sesión el filtro redirige al ingreso",
+      "passed": true
+    },
+    {
       "name": "Administrador y recepción consultan el listado de pacientes",
       "passed": true
     },
@@ -294,7 +418,7 @@
       "passed": true
     },
     {
-      "name": "Búsqueda de paciente: prueba_102b3d59-CLINICA",
+      "name": "Búsqueda de paciente: prueba_988592fd-CLINICA",
       "passed": true
     },
     {
@@ -730,7 +854,7 @@
       "passed": true
     },
     {
-      "name": "Médico rechaza sin alta parcial: usuario_id 6",
+      "name": "Médico rechaza sin alta parcial: usuario_id 7",
       "passed": true
     },
     {
@@ -1286,7 +1410,7 @@
       "passed": true
     },
     {
-      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-05T22:46'}",
+      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-05T23:14'}",
       "passed": true
     },
     {

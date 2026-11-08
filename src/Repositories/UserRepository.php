@@ -45,18 +45,23 @@ final class UserRepository
     }
 
     /**
-     * Busca cuentas por nombre de usuario o correo (máximo 200).
+     * Busca cuentas por nombre de usuario o correo y, opcionalmente, por rol (máximo 200).
+     * Todos los valores van como parámetros; el filtro de rol se combina con el texto mediante AND.
      *
      * @param string $query texto de búsqueda
+     * @param string|null $roleCode código de un rol existente (ya validado, véase UserService::roleFilter()); null para todos
      * @return array cuentas
      */
-    public static function search(string $query): array
+    public static function search(string $query, ?string $roleCode = null): array
     {
         $pattern = '%' . mb_strtolower($query) . '%';
+        $params = [$pattern, $pattern];
+        $filter = '';
+        if ($roleCode !== null) { $filter = ' AND r.codigo=?'; $params[] = $roleCode; }
         return Database::run('SELECT u.id,u.nombre_usuario,u.correo,u.habilitado,r.nombre AS rol_nombre
             FROM usuario u JOIN rol r ON r.id=u.rol_id
-            WHERE lower(u.nombre_usuario) LIKE ? OR lower(u.correo) LIKE ?
-            ORDER BY u.id DESC LIMIT 200', [$pattern, $pattern])->fetchAll();
+            WHERE (lower(u.nombre_usuario) LIKE ? OR lower(u.correo) LIKE ?)' . $filter . '
+            ORDER BY u.id DESC LIMIT 200', $params)->fetchAll();
     }
 
     /**

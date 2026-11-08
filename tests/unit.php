@@ -182,6 +182,14 @@ $optional['password'] = $optional['password_confirmation'] = 'sinrequisitos';
 $check(isset(App\Validation::account($optional, false)['password']), 'Edición con una contraseña nueva débil rechazada');
 $check(App\Validation::passwordProblems('Abcdef1!') === [] && count(App\Validation::passwordProblems('abc')) === 1, 'passwordProblems devuelve un mensaje que indica qué falta');
 
+// Filtro por rol del listado de usuarios (CU04): solo se acepta el código de un rol existente.
+$roleList = [['codigo' => 'administrador'], ['codigo' => 'recepcionista'], ['codigo' => 'medico'], ['codigo' => 'paciente']];
+$check(App\UserService::roleFilter('paciente', $roleList) === 'paciente' && App\UserService::roleFilter('administrador', $roleList) === 'administrador', 'Filtro de rol: un rol existente se acepta');
+$check(App\UserService::roleFilter('', $roleList) === null && App\UserService::roleFilter(null, $roleList) === null, 'Filtro de rol: vacío o ausente significa todos los roles');
+$check(App\UserService::roleFilter('superusuario', $roleList) === null && App\UserService::roleFilter('Paciente', $roleList) === null && App\UserService::roleFilter('paciente ', $roleList) === null, 'Filtro de rol: un rol inexistente o con otra forma se ignora');
+$check(App\UserService::roleFilter("paciente' OR '1'='1", $roleList) === null && App\UserService::roleFilter('1', $roleList) === null && App\UserService::roleFilter('paciente;--', $roleList) === null, 'Filtro de rol: intento de inyección se ignora');
+$check(App\UserService::roleFilter(['paciente'], $roleList) === null && App\UserService::roleFilter(1, $roleList) === null, 'Filtro de rol: un arreglo o un número se ignoran');
+
 foreach ($checks as [$ok,$label]) { echo ($ok ? '[OK] ' : '[FALLO] ') . $label . PHP_EOL; }
 echo count($checks) . ' comprobaciones.' . PHP_EOL;
 exit(count(array_filter($checks,fn($x)=>!$x[0])) ? 1 : 0);
