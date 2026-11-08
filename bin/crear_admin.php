@@ -1,5 +1,13 @@
 <?php
 declare(strict_types=1);
+/*
+ * Crea la primera cuenta de administrador (CU04, CU05). No hace cambios si ya existe un administrador habilitado.
+ *
+ * Uso: php bin/crear_admin.php
+ * Pide usuario, correo y contraseña en la terminal, o los toma de CLINICA_ADMIN_USER, CLINICA_ADMIN_EMAIL
+ * y CLINICA_ADMIN_PASSWORD si están definidos. La contraseña no se muestra mientras se escribe.
+ * Solo se ejecuta desde la línea de comandos.
+ */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require dirname(__DIR__) . '/bootstrap.php';
 function ask(string $label): string { fwrite(STDOUT, $label); return trim(fgets(STDIN) ?: ''); }

@@ -1,3 +1,4 @@
+<?php /* Detalle de una ausencia médica y de sus citas afectadas (CU26). */ ?>
 <div class="page-heading"><div><span class="eyebrow">AUSENCIA MÉDICA</span><h1><?= e($absence['medico']) ?></h1><p><?= e(clinic_datetime($absence['inicio'])) ?> a <?= e(clinic_datetime($absence['fin'])) ?></p></div><a class="button quiet" href="/ausencias">Volver al listado</a></div>
 <?php require BASE_PATH.'/views/_appointment_errors.php'; ?>
 <section class="card"><h2>Intervalo bloqueado</h2><p><?= e($absence['motivo']) ?></p><p class="field-help">Las citas conservan su estado hasta registrar el cambio acordado con el paciente.</p></section>

@@ -1,5 +1,13 @@
 <?php
 declare(strict_types=1);
+/*
+ * Aplica las migraciones pendientes de database/migrations en orden. Cada archivo se ejecuta una sola vez.
+ * Si una migración ya aplicada cambió, el proceso se detiene: no se modifican migraciones existentes.
+ *
+ * Uso: php bin/instalar.php
+ * Requiere .env con la conexión a PostgreSQL (o las variables DB_* en el entorno).
+ * Solo se ejecuta desde la línea de comandos.
+ */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require dirname(__DIR__) . '/bootstrap.php';
 try {

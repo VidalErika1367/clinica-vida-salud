@@ -1,3 +1,4 @@
+<?php /* Formulario de solicitud de cita urgente del paciente (CU21). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS URGENTES</span><h1>Solicitar cita urgente</h1><p>Envía tu solicitud para que recepción coordine una alternativa contigo.</p></div><a class="button quiet" href="/urgencias">Mis solicitudes</a></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card form-card"><p class="help-note">Enviar esta solicitud no reserva un turno ni garantiza atención inmediata. Recepción revisará tu solicitud y coordinará contigo. Puedes solicitar esta gestión aunque tengas restricciones para reservas ordinarias.</p>

@@ -1,3 +1,4 @@
+<?php /* Formulario de alta o edición de paciente (CU06). */ ?>
 <div class="page-heading"><div><span class="eyebrow">PACIENTES</span><h1><?= $editing ? 'Editar paciente' : 'Nuevo paciente' ?></h1><p><?= $editing ? 'Actualiza sus datos personales y de contacto.' : 'Registra al paciente para su atención en la clínica.' ?></p></div><a class="button quiet" href="/pacientes">Volver al listado</a></div>
 <section class="card form-card">
     <?php foreach (['general','version'] as $key): ?><?php if (isset($errors[$key])): ?><div class="alert error" role="alert"><?= e($errors[$key]) ?></div><?php endif; ?><?php endforeach; ?>

@@ -1,3 +1,4 @@
+<?php /* Listado de citas según el rol del usuario (CU12, CU13, CU14, CU15, CU16, CU17, CU18, CU19). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS MÉDICAS</span><h1><?= $user['rol']==='paciente' ? 'Mis citas' : 'Citas' ?></h1><p>Consulta tus reservas y realiza las operaciones autorizadas.</p></div><?php if (App\AppointmentService::allowed($user,'CU11')): ?><a class="button primary" href="/disponibilidad">Consultar disponibilidad</a><?php endif; ?></div>
 <section class="card"><form class="patient-search" method="get" action="/citas">
 <label><?= $user['rol']==='paciente' ? 'Buscar por código de cita' : 'Buscar por código, CI o paciente' ?><input name="q" value="<?= e($query) ?>" maxlength="100"></label>

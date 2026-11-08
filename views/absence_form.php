@@ -1,3 +1,4 @@
+<?php /* Formulario para registrar una ausencia médica (CU26). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ORGANIZACIÓN DIARIA</span><h1>Registrar ausencia del médico</h1><p>El intervalo bloquea reservas. Las citas existentes quedan pendientes de coordinación.</p></div></div>
 <?php require BASE_PATH.'/views/_appointment_errors.php'; ?>
 <section class="card form-card"><form class="form-stack" method="post" action="/ausencias/nueva"><?= csrf_field() ?><input type="hidden" name="clave_envio" value="<?= old($old,'clave_envio') ?>">

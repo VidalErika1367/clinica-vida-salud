@@ -1,8 +1,6 @@
 {
-  "unit_checks_passed": 76,
-  "http_checks_passed": 336,
-  "total_checks_passed": 412,
-  "http_results": [
+  "passed": 344,
+  "results": [
     {
       "name": "Panel privado exige iniciar sesión",
       "passed": true
@@ -296,7 +294,7 @@
       "passed": true
     },
     {
-      "name": "Búsqueda de paciente: prueba_be2a41c7-CLINICA",
+      "name": "Búsqueda de paciente: prueba_9ba7c165-CLINICA",
       "passed": true
     },
     {
@@ -680,6 +678,38 @@
       "passed": true
     },
     {
+      "name": "Filtro por especialidad solo muestra médicos con esa especialidad activa",
+      "passed": true
+    },
+    {
+      "name": "Filtro por especialidad se combina con el texto de búsqueda",
+      "passed": true
+    },
+    {
+      "name": "Filtro por especialidad se combina con el estado",
+      "passed": true
+    },
+    {
+      "name": "Valor malformado en especialidad no altera la consulta",
+      "passed": true
+    },
+    {
+      "name": "El selector muestra solo especialidades activas",
+      "passed": true
+    },
+    {
+      "name": "El selector de especialidad aparece en médicos y no en el catálogo de especialidades",
+      "passed": true
+    },
+    {
+      "name": "Recepción no usa el filtro de médicos (CU08)",
+      "passed": true
+    },
+    {
+      "name": "Filtro por especialidad excluye médicos cuando la especialidad está inactiva",
+      "passed": true
+    },
+    {
       "name": "Registro profesional equivalente no crea otro médico",
       "passed": true
     },
@@ -976,7 +1006,7 @@
       "passed": true
     },
     {
-      "name": "La cuenta médica no utiliza operaciones de reservas de pacientes o recepción",
+      "name": "La cuenta médica consulta sus citas sin acceso a nuevas reservas ordinarias",
       "passed": true
     },
     {
@@ -1084,15 +1114,15 @@
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-09T10:30",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T10:30",
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-09T14:00",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T14:00",
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-09T08:15",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T08:15",
       "passed": true
     },
     {
@@ -1256,7 +1286,7 @@
       "passed": true
     },
     {
-      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-10-22T16:07'}",
+      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-05T18:06'}",
       "passed": true
     },
     {

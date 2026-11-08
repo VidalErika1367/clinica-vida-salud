@@ -1,3 +1,4 @@
+<?php /* Reactivación de un paciente inactivo con verificación de datos (CU25). */ ?>
 <div class="page-heading"><div><span class="eyebrow">REACTIVACIÓN</span><h1><?= e($patient['nombres'].' '.$patient['apellidos']) ?></h1><p><?= e(App\PatientService::code((int) $patient['id'])) ?></p></div><a class="button quiet" href="/reactivaciones">Volver al listado</a></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card form-card"><dl class="account-details patient-details">

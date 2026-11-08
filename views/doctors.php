@@ -1,6 +1,7 @@
+<?php /* Listado de médicos con búsqueda, filtro de especialidad y estado (CU08). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Médicos</h1><p>Administra sus datos y especialidades.</p></div><a class="button primary" href="/medicos/nuevo">+ Nuevo médico</a></div>
 <section class="card">
-<?php $searchAction='/medicos'; $searchLabel='Buscar por registro profesional, nombres o apellidos'; require BASE_PATH . '/views/_catalog_search.php'; ?>
+<?php $searchAction='/medicos'; $searchLabel='Buscar por registro profesional, nombres o apellidos'; $searchSpecialties=$specialties; $searchSpecialtyId=$specialtyId; require BASE_PATH . '/views/_catalog_search.php'; ?>
 <div class="table-scroll"><table><thead><tr><th scope="col">Código</th><th scope="col">Registro profesional</th><th scope="col">Médico</th><th scope="col">Especialidades disponibles</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead><tbody>
 <?php foreach ($items as $item): ?><tr>
 <td><?= e(App\DoctorService::code((int) $item['id'])) ?></td><td><?= e($item['registro_profesional']) ?></td><td><strong><?= e($item['nombres'] . ' ' . $item['apellidos']) ?></strong></td><td class="catalog-description"><?= e($item['especialidades_actuales'] ?: 'Sin especialidades disponibles') ?></td><td><span class="badge <?= $item['activo'] ? 'enabled' : 'disabled' ?>"><?= $item['activo'] ? 'Activo' : 'Inactivo' ?></span></td>

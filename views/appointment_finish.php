@@ -1,3 +1,4 @@
+<?php /* Registro de la atención realizada (CU16) o de la inasistencia (CU17). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS MÉDICAS</span><h1><?= e($title) ?></h1><p><?= e(App\AppointmentService::code((int) $appointment['id'])) ?> · <?= e($appointment['paciente']) ?></p></div><a class="button quiet" href="/citas/<?= (int) $appointment['id'] ?>">Volver a la cita</a></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card form-card">

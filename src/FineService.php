@@ -7,14 +7,39 @@ use App\Repositories\PatientRepository;
 use App\Repositories\UrgentRepository;
 use App\Repositories\UserRepository;
 
+/**
+ * Advertencias y multas: consulta del estado de cuenta (CU24) y registro de pagos presenciales (CU23).
+ * El importe debe coincidir exactamente con la multa; no se admiten pagos parciales.
+ */
 final class FineService
 {
+    /** Filtros de estado disponibles en el listado. */
     public const STATES=['todas'=>'Todas','advertencias'=>'Advertencias','pendientes'=>'Multas pendientes','pagadas'=>'Multas pagadas'];
+    /**
+     * Código visible de una multa, por ejemplo "MU-000003".
+     *
+     * @param int $id identificador interno
+     * @return string código con seis dígitos
+     */
     public static function code(int $id): string { return 'MU-'.str_pad((string) $id,6,'0',STR_PAD_LEFT); }
+    /**
+     * Huella de la multa para control de versión.
+     *
+     * @param array $row multa
+     * @return string SHA-256 en hexadecimal
+     */
     public static function version(array $row): string
     {
         return CareSupport::version($row,['id','paciente_id','monto','estado','incumplimiento_id']);
     }
+    /**
+     * Valida el importe escrito: hasta 8 enteros y 2 decimales, sin separador de miles. Devuelve formato "0.00".
+     * Porqué: se compara como texto normalizado para evitar errores de redondeo de punto flotante.
+     *
+     * @param array $input datos del formulario (campo "monto")
+     * @return string importe normalizado con dos decimales
+     * @throws ValidationException si el formato es inválido o el importe es cero
+     */
     public static function amount(array $input): string
     {
         $value=CareSupport::text($input,'monto',12);
@@ -25,6 +50,18 @@ final class FineService
         if ($normalized==='0.00') { throw new ValidationException(['monto'=>'El importe debe ser mayor a cero.']); }
         return $normalized;
     }
+    /**
+     * Arma el resumen y el listado de multas del paciente seleccionado (CU24 o CU23).
+     * Porqué: la lectura va en una transacción de solo lectura con isolation REPEATABLE READ,
+     * así el resumen y el listado muestran el mismo estado aunque haya pagos simultáneos.
+     *
+     * @param array $input filtros: paciente, estado y página
+     * @param int $userId usuario que consulta
+     * @param bool $payments true para la pantalla de pagos (CU23), false para multas (CU24)
+     * @return array datos para la vista
+     * @throws HttpException 403 sin permiso
+     * @throws ValidationException si el estado o la página no son válidos
+     */
     public static function overview(array $input, int $userId, bool $payments=false): array
     {
         $actor=AppointmentService::actor($userId,$payments ? 'CU23' : 'CU24');
@@ -39,12 +76,31 @@ final class FineService
                     : ['items'=>[],'total'=>0,'page'=>1,'pages'=>1]];
         });
     }
+    /**
+     * Busca una multa por id.
+     *
+     * @param int $id multa
+     * @return array datos de la multa
+     * @throws HttpException 404 si no existe
+     */
     public static function find(int $id): array
     {
         $row=FineRepository::find($id);
         if (!$row) { throw new HttpException(404,'No se encontró la multa.'); }
         return $row;
     }
+    /**
+     * Registra el pago presencial de una multa pendiente (CU23) y notifica al paciente.
+     * Porqué: la multa, el paciente y la auditoría se actualizan en una sola transacción con la multa bloqueada,
+     * así no puede pagarse dos veces ni quedar un pago sin registro de auditoría.
+     *
+     * @param int $id multa
+     * @param array $input importe, comprobante, confirmación de recepción y versión
+     * @param int $userId usuario que registra el pago
+     * @return void
+     * @throws ValidationException si el importe no coincide, la multa ya fue pagada o la versión cambió
+     * @throws HttpException 403 sin permiso CU23; 404 si la multa no existe
+     */
     public static function pay(int $id, array $input, int $userId): void
     {
         $amount=self::amount($input); $receipt=CareSupport::text($input,'comprobante',80);

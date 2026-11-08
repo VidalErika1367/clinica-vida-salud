@@ -1,3 +1,4 @@
+<?php /* Detalle y gestión de una solicitud de cita urgente (CU21, CU22). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS URGENTES</span><h1>Solicitud <?= e(App\UrgentService::code((int) $request['id'])) ?></h1><p><?= e($request['paciente']) ?></p></div><a class="button quiet" href="/urgencias">Volver a solicitudes</a></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card form-card"><dl class="account-details patient-details">

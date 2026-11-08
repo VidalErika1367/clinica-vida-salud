@@ -1,3 +1,4 @@
+<?php /* Listado de usuarios con búsqueda (CU04). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Usuarios</h1><p>Administra las cuentas y los accesos de la clínica.</p></div><a class="button primary" href="/usuarios/nuevo">+ Nuevo usuario</a></div>
 <section class="card">
     <form class="search-form" method="get" action="/usuarios"><label class="sr-only" for="q">Buscar por usuario o correo</label><input id="q" name="q" value="<?= e($query) ?>" placeholder="Buscar por usuario o correo" maxlength="100"><button class="button secondary" type="submit">Buscar</button></form>

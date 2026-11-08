@@ -1,22 +1,27 @@
+// Menú móvil: botón de navegación, apertura y cierre, y foco al cerrar. Se usa en todas las pantallas.
 const navigationToggle = document.getElementById('navigation-toggle');
 const mainNavigation = document.getElementById('main-navigation');
 if (navigationToggle && mainNavigation) {
+    // Pantallas de 760 px o menos usan el menú plegable.
     const mobileNavigation = window.matchMedia('(max-width: 760px)');
     const navigationLabel = document.getElementById('navigation-label');
     const sidebar = navigationToggle.closest('.sidebar');
     let menuOpen = false;
+    // Abre o cierra el menú móvil y actualiza aria-expanded y la etiqueta del botón.
     const showMenu = open => {
         menuOpen = mobileNavigation.matches && open;
         mainNavigation.hidden = mobileNavigation.matches && !menuOpen;
         navigationToggle.setAttribute('aria-expanded', String(!mainNavigation.hidden));
         navigationLabel.textContent = menuOpen ? 'Cerrar' : 'Menú';
     };
+    // Recalcula el menú al cambiar el tamaño de pantalla; si el foco estaba dentro del menú, lo devuelve al botón.
     const updateNavigation = () => {
         const focusInside = mainNavigation.contains(document.activeElement);
         navigationToggle.hidden = !mobileNavigation.matches;
         showMenu(false);
         if (mobileNavigation.matches && focusInside) navigationToggle.focus();
     };
+    // Eventos del menú: alternar con el botón, cerrar al elegir un enlace, con Escape o al hacer clic fuera.
     navigationToggle.addEventListener('click', () => showMenu(!menuOpen));
     mainNavigation.addEventListener('click', event => {
         if (mobileNavigation.matches && event.target.closest('a')) showMenu(false);
@@ -35,6 +40,8 @@ if (navigationToggle && mainNavigation) {
     updateNavigation();
 }
 
+// Mostrar u ocultar contraseña en el formulario de ingreso (CU02).
+// Cambia el tipo del campo entre "password" y "text" y actualiza el texto y la etiqueta accesible del botón.
 document.querySelectorAll('[data-password-target]').forEach(button => {
     button.addEventListener('click', () => {
         const field = document.getElementById(button.dataset.passwordTarget);
@@ -44,6 +51,7 @@ document.querySelectorAll('[data-password-target]').forEach(button => {
         button.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
     });
 });
+// Formulario de usuario (CU04): muestra y exige los datos de paciente solo si el rol elegido es paciente.
 const roleSelect = document.getElementById('rol');
 const patientFields = document.getElementById('patient-fields');
 if (roleSelect && patientFields) {
@@ -54,6 +62,7 @@ if (roleSelect && patientFields) {
     };
     roleSelect.addEventListener('change', update); update();
 }
+// Consulta de disponibilidad (CU11): al cambiar la especialidad se limpia el médico y se vuelve a buscar.
 const specialtySelect = document.getElementById('availability-specialty');
 if (specialtySelect) {
     specialtySelect.addEventListener('change', () => {
@@ -63,6 +72,8 @@ if (specialtySelect) {
     });
 }
 
+// Filtros de reportes (CU20): muestra solo los filtros que aplican al tipo de reporte elegido
+// y desactiva los ocultos para que no se envíen.
 document.querySelectorAll('[data-report-filters]').forEach(form => {
     const kind = form.querySelector('[name="tipo"]');
     const update = () => {
@@ -80,6 +91,7 @@ document.querySelectorAll('[data-report-filters]').forEach(form => {
     update();
 });
 
+// Contador de la cita (CU29): muestra el tiempo hasta el turno y el tiempo restante.
 // El reloj del servidor y performance.now() evitan depender del reloj del equipo.
 document.querySelectorAll('[data-counter-url]').forEach(panel => {
     let start = Number(panel.dataset.start), end = Number(panel.dataset.end);
@@ -87,6 +99,7 @@ document.querySelectorAll('[data-counter-url]').forEach(panel => {
     let lastSync = performance.now(), pending = false, stopped = false;
     const output = panel.querySelector('[data-counter-output]');
     const status = panel.querySelector('[data-counter-status]');
+    // Formatea milisegundos como "d días · hh:mm:ss" (los días solo aparecen si hay al menos uno).
     const duration = ms => {
         const seconds = Math.max(0, Math.ceil(ms / 1000));
         const days = Math.floor(seconds / 86400);
@@ -94,6 +107,8 @@ document.querySelectorAll('[data-counter-url]').forEach(panel => {
             .map(value => String(value).padStart(2, '0')).join(':');
         return (days ? `${days} día${days === 1 ? '' : 's'} · ` : '') + clock;
     };
+    // Recalcula el texto con la hora del servidor más el tiempo transcurrido desde la última sincronización.
+    // Si no hubo sincronización en 2 minutos, pide actualizar la página en lugar de mostrar un dato vencido.
     const draw = () => {
         if (stopped) return;
         const now = server + performance.now() - reference;
@@ -104,6 +119,8 @@ document.querySelectorAll('[data-counter-url]').forEach(panel => {
         output.textContent = now < start ? `Tiempo hasta la cita: ${duration(start - now)}`
             : now < end ? `Tiempo restante del turno: ${duration(end - now)}` : 'Turno finalizado';
     };
+    // Consulta a /citas/{id}/contador los tiempos del turno (CU29) y los ajusta.
+    // Si la cita ya no está activa, oculta el panel y deja de actualizarlo. Evita solicitudes simultáneas con "pending".
     const sync = async () => {
         if (pending || document.hidden || stopped) return;
         pending = true;
@@ -125,7 +142,9 @@ document.querySelectorAll('[data-counter-url]').forEach(panel => {
         } finally { pending = false; }
     };
     draw();
+    // Refresca el texto cada segundo y sincroniza cada 30 segundos; ambos temporizadores se detienen al terminar el contador.
     const timer = setInterval(() => { if (stopped) { clearInterval(timer); return; } draw(); }, 1000);
     const poller = setInterval(() => { if (stopped) { clearInterval(poller); return; } sync(); }, 30000);
+    // Al volver a mostrar la pestaña, se sincroniza de inmediato.
     document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 });

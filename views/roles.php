@@ -1,3 +1,4 @@
+<?php /* Matriz de roles y permisos (CU05). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Roles y permisos</h1><p>Selecciona las operaciones que podrá realizar cada rol y guarda los cambios.</p></div></div>
 <?php if (isset($errors['general'])): ?><div class="alert error" role="alert"><?= e($errors['general']) ?></div><?php endif; ?>
 <form action="/roles" method="post" class="roles-form">

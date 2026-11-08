@@ -7,12 +7,22 @@ use App\Repositories\ProfileRepository;
 use App\Repositories\RoleRepository;
 use App\Repositories\UserRepository;
 
+/**
+ * Perfil de salud y contacto de emergencia del paciente (CU07). Los datos de identidad no se editan aquí.
+ */
 final class ProfileService
 {
+    /** Campos que el paciente puede editar en su perfil. */
     public const FIELDS = ['telefono','correo','direccion','tipo_sangre','alergias',
         'enfermedades_cronicas','medicamentos','antecedentes',
         'emergencia_nombre','emergencia_parentesco','emergencia_telefono'];
 
+    /**
+     * Normaliza los datos del perfil: recorta espacios, unifica saltos de línea y pasa correo y tipo de sangre a formato estándar.
+     *
+     * @param array $input datos recibidos
+     * @return array datos normalizados de los campos del perfil
+     */
     public static function values(array $input): array
     {
         $data = [];
@@ -25,6 +35,15 @@ final class ProfileService
         return $data;
     }
 
+    /**
+     * Devuelve el perfil del paciente de la sesión. Rechaza cualquier identificador enviado que no sea el propio.
+     *
+     * @param int $userId usuario de la sesión
+     * @param bool $lock si es true, bloquea la ficha
+     * @param array $selectors identificadores enviados por la petición, que se comparan con los reales
+     * @return array perfil del paciente
+     * @throws HttpException 403 si no es paciente con CU07 o si pide otro perfil; 404 si no tiene ficha vinculada
+     */
     public static function findForUser(int $userId, bool $lock = false, array $selectors = []): array
     {
         $user = UserRepository::sessionAccount($userId);
@@ -43,6 +62,12 @@ final class ProfileService
         return $profile;
     }
 
+    /**
+     * Huella del perfil: incluye la ficha del paciente y los datos del perfil.
+     *
+     * @param array $profile perfil
+     * @return string SHA-256 en hexadecimal
+     */
     public static function version(array $profile): string
     {
         return hash('sha256', json_encode(['id'=>$profile['id'],
@@ -50,6 +75,17 @@ final class ProfileService
             JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
     }
 
+    /**
+     * Guarda el perfil del paciente (CU07). Los datos de identidad (CI, nombres, fecha de nacimiento, sexo)
+     * se rechazan si cambian: solo recepción los corrige.
+     * Porqué: la auditoría registra los nombres de los campos modificados, nunca su contenido médico.
+     *
+     * @param array $input datos del formulario y versión
+     * @param int $userId usuario paciente
+     * @return void
+     * @throws ValidationException si la versión cambió, intenta editar identidad o los datos no son válidos
+     * @throws HttpException 403 o 404 según el acceso al perfil
+     */
     public static function save(array $input, int $userId): void
     {
         Database::transaction(function () use ($input, $userId): void {

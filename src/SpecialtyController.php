@@ -4,8 +4,18 @@ namespace App;
 use App\Repositories\DoctorRepository;
 use App\Repositories\SpecialtyRepository;
 
+/**
+ * Catálogo de especialidades médicas (CU09): listado, detalle, alta y edición.
+ * Solo administradores.
+ */
 final class SpecialtyController
 {
+    /**
+     * Lista especialidades con búsqueda y filtro de estado (CU09).
+     *
+     * @return void
+     * @throws HttpException 403 sin permiso CU09
+     */
     public static function index(): void
     {
         Auth::requireAdmin('CU09');
@@ -21,12 +31,26 @@ final class SpecialtyController
             'section'=>'especialidades','item'=>$item,'old'=>$old,'errors'=>$errors,
             'version'=>$version ?? ($item ? SpecialtyService::version($item) : '')],$errors ? 422 : 200);
     }
+    /**
+     * Formulario de alta o edición de especialidad (CU09).
+     *
+     * @param int|null $id especialidad; null para alta
+     * @return void
+     * @throws HttpException 403 sin permiso CU09; 404 si no existe
+     */
     public static function form(?int $id=null): void
     {
         Auth::requireAdmin('CU09');
         $item=$id === null ? null : SpecialtyService::find($id);
         self::render($item,$item ?? ['activo'=>true]);
     }
+    /**
+     * Guarda una especialidad (CU09). Las citas y asociaciones existentes se conservan.
+     *
+     * @param int|null $id especialidad a modificar; null para alta
+     * @return void
+     * @throws HttpException 403 sin permiso CU09; 404 si no existe
+     */
     public static function save(?int $id=null): void
     {
         $user=Auth::requireAdmin('CU09');
@@ -42,6 +66,13 @@ final class SpecialtyController
                 $stale ? null : input('version'));
         }
     }
+    /**
+     * Detalle de especialidad con médicos asociados y próximas citas (CU09).
+     *
+     * @param int $id especialidad
+     * @return void
+     * @throws HttpException 403 sin permiso CU09; 404 si no existe
+     */
     public static function detail(int $id): void
     {
         Auth::requireAdmin('CU09');

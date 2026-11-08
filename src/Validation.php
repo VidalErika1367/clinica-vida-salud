@@ -2,10 +2,21 @@
 declare(strict_types=1);
 namespace App;
 
+/**
+ * Reglas de validación de formularios: horarios (CU10), especialidades (CU09), médicos (CU08),
+ * cuentas (CU01, CU04), pacientes (CU06), perfil de salud (CU07). Devuelven errores por campo.
+ */
 final class Validation
 {
+    /** Tipos de sangre admitidos en el perfil de salud. */
     public const BLOOD_TYPES = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
 
+    /**
+     * Valida un horario: médico, día y horas en bloques de media hora dentro del mismo día.
+     *
+     * @param array $data datos del horario
+     * @return array<string,string> errores por campo; vacío si es válido
+     */
     public static function schedule(array $data): array
     {
         $errors=[];
@@ -22,6 +33,12 @@ final class Validation
         return $errors;
     }
 
+    /**
+     * Valida nombre y descripción de una especialidad.
+     *
+     * @param array $data datos de la especialidad
+     * @return array<string,string> errores por campo
+     */
     public static function specialty(array $data): array
     {
         $errors=[];
@@ -34,6 +51,12 @@ final class Validation
         return $errors;
     }
 
+    /**
+     * Valida los datos profesionales y de contacto de un médico.
+     *
+     * @param array $data datos del médico
+     * @return array<string,string> errores por campo
+     */
     public static function doctor(array $data): array
     {
         $errors=[];
@@ -49,11 +72,24 @@ final class Validation
         return $errors;
     }
 
+    /**
+     * Comprueba un teléfono: entre 7 y 15 dígitos, con símbolos de formato permitidos.
+     *
+     * @param string $phone teléfono escrito
+     * @return bool
+     */
     public static function validPhone(string $phone): bool
     {
         $digits = preg_replace('/\D/', '', $phone);
         return preg_match('/^\+?[0-9 ()-]{7,30}$/', $phone) === 1 && strlen($digits) >= 7 && strlen($digits) <= 15;
     }
+    /**
+     * Valida una cuenta de usuario. La contraseña debe tener entre 12 y 72 bytes; el límite evita truncamientos.
+     *
+     * @param array $data datos de la cuenta
+     * @param bool $passwordRequired si es false, una contraseña vacía significa "no cambiar"
+     * @return array<string,string> errores por campo
+     */
     public static function account(array $data, bool $passwordRequired = true): array
     {
         $errors = [];
@@ -72,6 +108,12 @@ final class Validation
         }
         return $errors;
     }
+    /**
+     * Valida los datos mínimos de un paciente: CI, nombres, apellidos y teléfono.
+     *
+     * @param array $data datos del paciente
+     * @return array<string,string> errores por campo
+     */
     public static function patient(array $data): array
     {
         $errors = [];
@@ -87,6 +129,13 @@ final class Validation
         }
         return $errors;
     }
+    /**
+     * Normaliza identificadores: usuario y correo en minúsculas; CI en mayúsculas y con espacios simples.
+     * Porqué: evita cuentas o pacientes duplicados por diferencias de escritura.
+     *
+     * @param array $data datos recibidos
+     * @return array datos normalizados
+     */
     public static function normalize(array $data): array
     {
         foreach (['nombre_usuario', 'correo'] as $key) { $data[$key] = mb_strtolower(trim($data[$key] ?? '')); }
@@ -94,6 +143,13 @@ final class Validation
         return $data;
     }
 
+    /**
+     * Valida los datos administrativos completos del paciente, incluidos los opcionales.
+     * La fecha de nacimiento no puede ser futura.
+     *
+     * @param array $data datos del paciente
+     * @return array<string,string> errores por campo
+     */
     public static function patientDetails(array $data): array
     {
         $errors = self::patient($data);
@@ -122,6 +178,12 @@ final class Validation
         return $errors;
     }
 
+    /**
+     * Valida el perfil de salud y el contacto de emergencia. Si se llena un dato del contacto, deben llenarse los tres.
+     *
+     * @param array $data datos del perfil
+     * @return array<string,string> errores por campo
+     */
     public static function patientProfile(array $data): array
     {
         $errors = [];

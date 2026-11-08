@@ -3,8 +3,18 @@ declare(strict_types=1);
 namespace App;
 use App\Repositories\UserRepository;
 
+/**
+ * Tareas periódicas del proceso bin/procesar_tareas.php: inactividad diaria de pacientes,
+ * recordatorios de cita (24 h y 1 h), sondeo de Telegram y envío de avisos pendientes.
+ */
 final class TaskService
 {
+    /**
+     * Ejecuta la inactividad una vez por día y genera los recordatorios pendientes.
+     * Porqué: un candado de transacción evita que dos procesos desactiven pacientes o dupliquen avisos a la vez.
+     *
+     * @return void
+     */
     public static function maintain(): void
     {
         Database::transaction(function (): void {
@@ -30,6 +40,15 @@ final class TaskService
                   OR a.clave_evento NOT LIKE 'recordatorio:' || c.id || ':' || extract(epoch FROM c.inicio)::bigint || ':' || c.medico_id || ':%')");
         });
     }
+    /**
+     * Recibe las actualizaciones pendientes del bot (modo polling) y avanza el desplazamiento guardado.
+     * Porqué: el desplazamiento se guarda con máximo, así una actualización repetida nunca retrocede el puntero.
+     *
+     * @param TelegramClient $client cliente del bot
+     * @param int $timeout segundos de espera de Telegram
+     * @return void
+     * @throws \RuntimeException si la respuesta de Telegram no tiene el formato esperado
+     */
     public static function poll(TelegramClient $client, int $timeout=20): void
     {
         $key='telegram_offset:'.substr(hash('sha256',Config::get('TELEGRAM_BOT_TOKEN')),0,32);
@@ -42,6 +61,15 @@ final class TaskService
             Database::run('INSERT INTO integracion_estado(clave,valor) VALUES(?,?) ON CONFLICT(clave) DO UPDATE SET valor=greatest(integracion_estado.valor,EXCLUDED.valor)',[$key,$update['update_id']+1]);
         }
     }
+    /**
+     * Envía hasta $limit avisos pendientes, uno por transacción (CU28).
+     * Porqué: cada aviso se marca en su propia transacción con bloqueo SKIP LOCKED; si Telegram no confirma, queda en error
+     * y recepción decide el reintento. No se reenvía automáticamente para evitar mensajes duplicados.
+     *
+     * @param TelegramClient $client cliente del bot
+     * @param int $limit número máximo de avisos a intentar (tope 50)
+     * @return array{enviados:int,errores:int} totales de la ejecución
+     */
     public static function deliver(TelegramClient $client, int $limit=20): array
     {
         $totals=['enviados'=>0,'errores'=>0];

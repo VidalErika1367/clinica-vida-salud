@@ -1,5 +1,14 @@
 <?php
 declare(strict_types=1);
+/*
+ * Proceso de tareas (CU24, CU27, CU28): inactividad diaria de pacientes, recordatorios de cita,
+ * recepción de mensajes de Telegram (polling) y envío de avisos pendientes.
+ *
+ * Uso: php bin/procesar_tareas.php            ejecuta ciclos continuos (cada 10 segundos)
+ *      php bin/procesar_tareas.php --una-vez  ejecuta un solo ciclo y termina (para un programador de tareas)
+ * Solo debe existir un proceso activo en modo polling; un candado de PostgreSQL impide dos a la vez.
+ * Solo se ejecuta desde la línea de comandos.
+ */
 require dirname(__DIR__).'/bootstrap.php';
 if (PHP_SAPI!=='cli') { http_response_code(404); exit; }
 $once=in_array('--una-vez',$argv,true);

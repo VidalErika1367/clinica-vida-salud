@@ -3,12 +3,28 @@ declare(strict_types=1);
 namespace App;
 use App\Repositories\ScheduleRepository;
 
+/**
+ * Horarios de atención semanales por médico (CU10). Solo administradores.
+ * Los cambios no pueden dejar citas vigentes fuera del horario: en ese caso se muestran las citas afectadas.
+ */
 final class ScheduleController
 {
+    /**
+     * Lee un identificador de la URL o del formulario; devuelve 0 si no es un entero positivo válido.
+     *
+     * @param mixed $value valor recibido
+     * @return int identificador o 0
+     */
     private static function selectedId(mixed $value): int
     {
         return is_string($value) && preg_match('/^[1-9][0-9]{0,17}$/',$value) ? (int) $value : 0;
     }
+    /**
+     * Lista horarios filtrados por médico, día y estado (CU10).
+     *
+     * @return void
+     * @throws HttpException 403 sin permiso CU10
+     */
     public static function index(): void
     {
         Auth::requireAdmin('CU10');
@@ -28,6 +44,12 @@ final class ScheduleController
             'doctors'=>ScheduleRepository::doctors(true,$item ? (int) $item['medico_id'] : null),
             'version'=>$version ?? ($item ? ScheduleService::version($item) : '')],$errors ? 422 : 200);
     }
+    /**
+     * Formulario de alta o edición de horario (CU10).
+     *
+     * @param int|null $id horario; null para alta
+     * @return void
+     */
     public static function form(?int $id=null): void
     {
         Auth::requireAdmin('CU10');
@@ -35,6 +57,13 @@ final class ScheduleController
         self::render($item,$item ? ScheduleService::formValues($item) : [
             'medico_id'=>(string) self::selectedId($_GET['medico_id'] ?? null),'dia_semana'=>'1','activo'=>true]);
     }
+    /**
+     * Guarda un horario (CU10). Si deja citas fuera de horario, no guarda y muestra las citas afectadas.
+     *
+     * @param int|null $id horario; null para alta
+     * @return void
+     * @throws HttpException 403 sin permiso CU10
+     */
     public static function save(?int $id=null): void
     {
         $user=Auth::requireAdmin('CU10');

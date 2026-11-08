@@ -1,3 +1,4 @@
+<?php /* Cancelación de una cita (CU15). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS MÉDICAS</span><h1>Cancelar cita</h1><p><?= e(App\AppointmentService::code((int) $appointment['id'])) ?> · <?= e($appointment['paciente']) ?></p></div><a class="button quiet" href="/citas/<?= (int) $appointment['id'] ?>">Volver a la cita</a></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card form-card"><p><strong><?= e(clinic_datetime($appointment['inicio'])) ?></strong> · <?= e($appointment['medico']) ?> · <?= e($appointment['especialidad']) ?></p>

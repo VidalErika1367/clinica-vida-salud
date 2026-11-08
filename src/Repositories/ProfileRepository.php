@@ -4,8 +4,18 @@ namespace App\Repositories;
 
 use App\Database;
 
+/**
+ * Perfil de salud y contacto de emergencia del paciente (CU07). Cada paciente tiene como máximo uno de cada uno.
+ */
 final class ProfileRepository
 {
+    /**
+     * Ficha del paciente de una cuenta, con su perfil de salud y contacto de emergencia.
+     *
+     * @param int $userId cuenta de usuario
+     * @param bool $lock si es true, bloquea la ficha del paciente
+     * @return array|false datos del perfil o false si la cuenta no tiene ficha
+     */
     public static function forUser(int $userId, bool $lock = false): array|false
     {
         return Database::run('SELECT p.*,s.tipo_sangre,s.alergias,s.enfermedades_cronicas,
@@ -16,6 +26,14 @@ final class ProfileRepository
             . ($lock ? ' FOR UPDATE OF p' : ''), [$userId])->fetch();
     }
 
+    /**
+     * Guarda el perfil: teléfono, correo y dirección en la ficha; datos médicos en perfil_salud;
+     * y el contacto de emergencia, que se borra si el nombre queda vacío.
+     *
+     * @param int $patientId paciente
+     * @param array $data datos del perfil ya validados
+     * @return void
+     */
     public static function save(int $patientId, array $data): void
     {
         $nullable = static fn(string $key): ?string => $data[$key] === '' ? null : $data[$key];

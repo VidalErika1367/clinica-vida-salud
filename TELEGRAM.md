@@ -40,6 +40,103 @@ El modo predeterminado **polling** funciona localmente sin exponer localhost. Pa
 
 El proceso de tareas sigue siendo necesario con webhook para enviar avisos, generar recordatorios y revisar inactividad. Una actualización duplicada no vuelve a vincular ni consume otra vez el código. El offset de polling avanza después de guardar la actualización. No se asocia una cuenta por su teléfono.
 
+## Comprobación en Render
+
+**Cómo funciona hoy.** No hay cron ni programador en el repositorio. `deploy/start.sh` ejecuta `bin/preparar_servidor.php` (migraciones y primer administrador), lanza `bin/procesar_tareas.php` en segundo plano dentro de un bucle y deja Apache en primer plano. Si el proceso de tareas termina por un error, el bucle escribe `tareas reiniciadas` en los registros y lo vuelve a lanzar a los 5 segundos. Si Apache termina, el contenedor se detiene y el proceso de tareas se cierra con él. El proceso de tareas es un bucle que repite cada 10 segundos: mantenimiento (inactividad diaria y recordatorios), sondeo de Telegram en modo polling y envío de avisos pendientes.
+
+**Qué pasa con el plan gratuito.** Render suspende el servicio después de 15 minutos sin tráfico entrante (véase DESPLEGAR_RENDER.md). La suspensión detiene el contenedor y, con él, el proceso de tareas y su bucle de reinicio: el reinicio automático solo cubre fallos del proceso, no la suspensión. Al despertar, `start.sh` vuelve a ejecutarse y las tareas reinician. Mientras el servicio está dormido:
+
+- En modo polling, Telegram no envía tráfico HTTP al servicio, así que nada lo despierta. Los mensajes al bot quedan sin procesar hasta que alguien abra la web.
+- Los avisos pendientes se envían al siguiente ciclo, después de despertar.
+- Un recordatorio solo se genera si la cita sigue sin comenzar mientras el proceso está activo. Si el servicio permanece dormido durante toda la ventana de 24 h o de 1 h de una cita, ese recordatorio no se generará.
+
+**Cómo evitar la suspensión.** Un monitor externo que visite la web cada 5 minutos mantiene el tráfico entrante y evita que el plan gratuito suspenda el servicio. Por ejemplo, UptimeRobot con un monitor HTTP(s) cada 5 minutos a `https://<tu-servicio>.onrender.com/ingresar`. Esto no está configurado ni verificado en este repositorio, y el plan gratuito de Render tiene otros límites además de la suspensión (véase DESPLEGAR_RENDER.md).
+
+**Cómo verificarlo.**
+
+1. Abre la web para despertar el servicio. En Render, en **Logs**, busca las líneas `[OK]` de `preparar_servidor`: aparecen en cada arranque en frío y confirman que `start.sh` se ejecutó.
+2. En Render → **Logs**, busca el texto `tareas reiniciadas`: cada aparición indica que el proceso de tareas terminó y `start.sh` lo volvió a lanzar. Si aparece repetida cada pocos segundos, el proceso falla al arrancar; busca justo antes el mensaje de error. También puede aparecer `No se completó el ciclo de tareas` cuando falla un ciclo. Los logs no muestran actividad normal del bucle: que no haya reinicios ni errores no prueba por sí solo que el proceso funcione.
+3. Ejecuta las consultas siguientes en la base de Render. Son de solo lectura. `render.yaml` declara `ipAllowList: []`, así que la base no admite conexiones externas: usa la consola que ofrezca el panel de la base o el shell del servicio si tu plan lo incluye.
+4. Interpreta el resultado:
+   - `integracion_estado.inactividad_dia` con la fecha de hoy indica que el mantenimiento se ejecutó hoy. Si la fecha es antigua, el proceso no corrió. Si no hay fila, nunca corrió en esa base.
+   - Las citas de las próximas 24 horas deben tener aviso de 24 h y, al acercarse, de 1 h. Sin avisos en citas cercanas, el proceso no corrió dentro de esa ventana.
+   - La consulta 2b debe devolver cero filas.
+   - Un aviso `enviado` debe tener `enviado_en`. Un aviso `error` tiene intentos y `ultimo_error`.
+
+```sql
+SET TIME ZONE 'America/La_Paz';
+BEGIN READ ONLY;
+
+-- 1. Recordatorios de 24 h y 1 h por cita (próximas 48 h y últimas 2 h).
+SELECT c.id AS cita_id, c.inicio AS inicio_local, c.estado AS estado_cita,
+       MAX(CASE WHEN split_part(a.clave_evento, ':', 5) = '24h' THEN a.estado END) AS aviso_24h,
+       MAX(CASE WHEN split_part(a.clave_evento, ':', 5) = '1h'  THEN a.estado END) AS aviso_1h,
+       COUNT(a.id) AS avisos_total
+FROM cita c
+LEFT JOIN aviso a ON a.cita_id = c.id AND a.tipo = 'recordatorio'
+WHERE c.inicio >= now() - interval '2 hours' AND c.inicio <= now() + interval '48 hours'
+GROUP BY c.id, c.inicio, c.estado
+ORDER BY c.inicio
+LIMIT 200;
+
+-- 2a. Ventanas con más de un aviso (puede ser legítimo si la cita se reprogramó).
+SELECT a.cita_id, split_part(a.clave_evento, ':', 5) AS ventana, COUNT(*) AS avisos,
+       string_agg(a.estado, ',' ORDER BY a.id) AS estados
+FROM aviso a
+WHERE a.tipo = 'recordatorio'
+GROUP BY a.cita_id, split_part(a.clave_evento, ':', 5)
+HAVING COUNT(*) > 1
+ORDER BY a.cita_id;
+
+-- 2b. Duplicados activos (pendiente, enviado o error). Debe devolver 0 filas.
+SELECT a.cita_id, split_part(a.clave_evento, ':', 5) AS ventana, COUNT(*) AS avisos_activos
+FROM aviso a
+WHERE a.tipo = 'recordatorio' AND a.estado IN ('pendiente', 'enviado', 'error')
+GROUP BY a.cita_id, split_part(a.clave_evento, ':', 5)
+HAVING COUNT(*) > 1;
+
+-- 3a. Resumen por estado: cantidad, intentos y fechas.
+SELECT a.estado, COUNT(*) AS avisos, SUM(a.intentos) AS intentos_total,
+       MAX(a.intentos) AS intentos_maximos,
+       COUNT(*) FILTER (WHERE a.estado = 'enviado' AND a.enviado_en IS NULL) AS enviados_sin_fecha,
+       COUNT(*) FILTER (WHERE a.estado <> 'enviado' AND a.enviado_en IS NOT NULL) AS no_enviados_con_fecha,
+       MAX(a.creado_en) AS ultimo_aviso_creado,
+       MAX(a.ultimo_intento_en) AS ultimo_intento,
+       MAX(a.enviado_en) AS ultimo_envio_confirmado
+FROM aviso a
+GROUP BY a.estado
+ORDER BY a.estado;
+
+-- 3b. Últimos 30 avisos (sin el texto del mensaje).
+SELECT a.id, a.tipo, a.estado, a.intentos, a.cita_id,
+       a.creado_en, a.ultimo_intento_en, a.enviado_en, left(a.ultimo_error, 80) AS error
+FROM aviso a
+ORDER BY a.id DESC
+LIMIT 30;
+
+-- 3c. Pendientes sin vinculación de Telegram activa (no pueden enviarse).
+SELECT COUNT(*) AS pendientes_sin_vinculo_activo
+FROM aviso a
+WHERE a.estado = 'pendiente'
+  AND NOT EXISTS (SELECT 1 FROM vinculo_telegram v WHERE v.paciente_id = a.paciente_id AND v.activo);
+
+-- 4a. Última ejecución registrada. inactividad_dia guarda la fecha AAAAMMDD del último mantenimiento diario.
+SELECT e.clave, e.valor,
+       CASE WHEN e.clave = 'inactividad_dia' THEN to_date(e.valor::text, 'YYYYMMDD') END AS fecha_inactividad
+FROM integracion_estado e
+ORDER BY e.clave;
+
+-- 4b. Señales indirectas: no existe tabla de latidos.
+SELECT (SELECT MAX(creado_en) FROM aviso) AS ultimo_aviso_generado,
+       (SELECT MAX(ultimo_intento_en) FROM aviso) AS ultimo_intento_envio,
+       (SELECT MAX(creado_en) FROM telegram_actualizacion) AS ultima_actualizacion_telegram,
+       now() AS consulta_en;
+
+ROLLBACK;
+```
+
+Si necesitas una ejecución continua con seguridad, la opción es un programador externo que ejecute `php bin/procesar_tareas.php --una-vez`. Eso requiere un servicio o plan que ejecute tareas programadas en Render; no está configurado en el repositorio ni se ha verificado.
+
 ## Avisos, errores y reintentos
 
 Cada cambio guarda su aviso en la misma transacción que la operación. Sin un chat autorizado, el aviso permanece pendiente y está disponible en la web. El proceso solo envía con una vinculación activa y una cuenta habilitada de paciente.

@@ -1,3 +1,4 @@
+<?php /* Plantilla común de todas las pantallas: cabecera, menú y pie (sin CU propio). */ ?>
 <!doctype html>
 <html lang="es-BO">
 <head>

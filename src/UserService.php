@@ -7,23 +7,68 @@ use App\Repositories\PatientRepository;
 use App\Repositories\RoleRepository;
 use App\Repositories\UserRepository;
 
+/**
+ * Cuentas de usuario: alta y edición por administración (CU04) y registro público de pacientes (CU01).
+ * Cada cambio se registra en auditoría con el responsable.
+ */
 final class UserService
 {
+    /**
+     * Roles disponibles para asignar a una cuenta.
+     *
+     * @return array roles
+     */
     public static function roles(): array { return RoleRepository::all(); }
+    /**
+     * Busca usuarios por nombre de usuario o correo (CU04).
+     *
+     * @param string $query texto de búsqueda
+     * @return array usuarios
+     */
     public static function search(string $query): array { return UserRepository::search($query); }
+    /**
+     * Totales de usuarios para el panel del administrador.
+     *
+     * @return array conteos
+     */
     public static function statistics(): array { return UserRepository::counts(); }
+    /**
+     * Comprueba que el registro público esté habilitado en la matriz de permisos (CU01).
+     *
+     * @return void
+     * @throws HttpException 403 si el permiso CU01 no está asignado al rol paciente
+     */
     public static function requireRegistrationAllowed(): void
     {
         if (!RoleRepository::allows('paciente', 'CU01')) {
             throw new HttpException(403, 'El registro de nuevas cuentas está deshabilitado. Consulta en recepción.');
         }
     }
+    /**
+     * Busca un usuario por id.
+     *
+     * @param int $id usuario
+     * @return array datos de la cuenta
+     * @throws HttpException 404 si no existe
+     */
     public static function find(int $id): array
     {
         $row = UserRepository::find($id);
         if (!$row) { throw new HttpException(404, 'No se encontró el usuario.'); }
         return $row;
     }
+    /**
+     * Crea o modifica una cuenta. Para el registro público, el rol siempre es paciente.
+     * Porqué: el último administrador habilitado no puede deshabilitarse ni perder su rol; la comprobación
+     * se hace con un bloqueo global de cuentas para evitar que dos cambios simultáneos dejen el sistema sin administrador.
+     *
+     * @param array $data datos de la cuenta
+     * @param int|null $id usuario a modificar; null para alta
+     * @param bool $public true si la cuenta la crea el propio paciente
+     * @return int identificador de la cuenta
+     * @throws ValidationException si los datos no son válidos o el usuario o correo ya existe
+     * @throws HttpException 403 si el registro público está deshabilitado
+     */
     public static function save(array $data, ?int $id = null, bool $public = false): int
     {
         $editing = $id !== null;

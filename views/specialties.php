@@ -1,3 +1,4 @@
+<?php /* Catálogo de especialidades con búsqueda y estado (CU09). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Especialidades</h1><p>Administra las especialidades de la clínica.</p></div><a class="button primary" href="/especialidades/nueva">+ Nueva especialidad</a></div>
 <section class="card">
 <?php $searchAction='/especialidades'; $searchLabel='Buscar por nombre'; require BASE_PATH . '/views/_catalog_search.php'; ?>

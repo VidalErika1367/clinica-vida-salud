@@ -4,16 +4,36 @@ namespace App;
 use App\Repositories\AuditRepository;
 use App\Repositories\UserRepository;
 
+/**
+ * Avisos del sistema (CU28): listado con filtros, control de versión y reintento autorizado por recepción.
+ * Los avisos no contienen diagnósticos; solo indican que hay un cambio y dónde consultarlo en la web.
+ */
 final class NoticeService
 {
+    /** Asunto visible de cada tipo de aviso. */
     public const SUBJECTS=['cambio_cita'=>'Cambio en su cita','advertencia'=>'Advertencia de cita','multa'=>'Multa pendiente',
         'solicitud_urgente'=>'Solicitud urgente recibida','gestion_urgente'=>'Gestión de solicitud urgente',
         'pago_multa'=>'Pago de multa registrado','ausencia_medico'=>'Cambio pendiente por ausencia médica',
         'telegram_vinculado'=>'Telegram vinculado','recordatorio'=>'Recordatorio de cita'];
+    /**
+     * Huella del aviso para control de versión al reintentar.
+     *
+     * @param array $row aviso
+     * @return string SHA-256 en hexadecimal
+     */
     public static function version(array $row): string
     {
         return CareSupport::version($row,['id','estado','intentos','ultimo_intento_en']);
     }
+    /**
+     * Lista avisos: el paciente solo ve los suyos; el personal puede filtrar por paciente y estado (CU28).
+     *
+     * @param array $actor usuario con su rol
+     * @param array $input filtros de paciente, estado y página
+     * @return array listado paginado y filtros aplicados
+     * @throws HttpException 403 si un paciente pide avisos de otro
+     * @throws ValidationException si los filtros no son válidos
+     */
     public static function listing(array $actor, array $input): array
     {
         $where=' WHERE true'; $values=[];
@@ -34,6 +54,17 @@ final class NoticeService
         return ['listing'=>['items'=>$items,'total'=>$total,'page'=>$page,'pages'=>max(1,(int) ceil($total/50))],
             'state'=>$state,'patientId'=>$patient];
     }
+    /**
+     * Autoriza el reintento de un aviso con error (CU28). Solo personal, máximo 10 intentos y con Telegram vinculado.
+     * Porqué: la confirmación explícita existe porque un envío anterior podría haberse recibido aunque la API no lo confirmara.
+     *
+     * @param int $id aviso
+     * @param array $input confirmación de reintento y versión
+     * @param int $user usuario de recepción
+     * @return void
+     * @throws ValidationException si el aviso no admite reintento o el paciente no tiene Telegram activo
+     * @throws HttpException 403 si lo solicita un paciente; 404 si no existe
+     */
     public static function retry(int $id, array $input, int $user): void
     {
         CareSupport::confirm($input,'reintento_autorizado','Confirma el reintento: un envío anterior podría haberse recibido.');

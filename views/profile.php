@@ -1,3 +1,4 @@
+<?php /* Perfil de salud y contacto de emergencia del paciente (CU07). */ ?>
 <div class="page-heading"><div><span class="eyebrow">MI ESPACIO</span><h1>Mi perfil</h1><p>Mantén actualizada tu información de contacto y tus datos médicos básicos.</p></div><span class="badge <?= $profile['activo'] ? 'enabled' : 'disabled' ?>"><?= $profile['activo'] ? 'Activo' : 'Inactivo' ?></span></div>
 <?php if (!$profile['activo']): ?><div class="alert warning">Tu ficha está inactiva para nuevas reservas. Puedes actualizar tu perfil y solicitar la reactivación en recepción.</div><?php endif; ?>
 <section class="card form-card">

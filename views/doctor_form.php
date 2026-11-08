@@ -1,3 +1,4 @@
+<?php /* Formulario de alta o edición de médico, especialidades y cuenta vinculada (CU08). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1><?= $item ? 'Editar médico' : 'Nuevo médico' ?></h1><p>Registra su identidad profesional y las especialidades que atiende.</p></div><a class="button quiet" href="/medicos">Volver al listado</a></div>
 <section class="card form-card">
 <?php foreach (['general','version'] as $key): ?><?php if (isset($errors[$key])): ?><div class="alert error" role="alert"><?= e($errors[$key]) ?></div><?php endif; ?><?php endforeach; ?>

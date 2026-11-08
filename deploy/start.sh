@@ -14,7 +14,8 @@ fi
 # Si falla la base o la primera cuenta, no se publica una aplicación incompleta.
 php bin/preparar_servidor.php
 # El proceso de tareas mantiene recordatorios e inactividad aun sin visitas web.
-php bin/procesar_tareas.php &
+# Si el proceso de tareas termina por un error, se reinicia tras 5 segundos (|| true evita que set -e cierre el bucle).
+while true; do php bin/procesar_tareas.php || true; echo "tareas reiniciadas" >&2; sleep 5; done &
 tasks_pid=$!
 trap 'kill "$tasks_pid" 2>/dev/null || true' EXIT INT TERM
 apache2-foreground &

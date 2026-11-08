@@ -1,3 +1,4 @@
+<?php /* Gestión de una cita afectada por una ausencia médica (CU26). */ ?>
 <div class="page-heading"><div><span class="eyebrow">GESTIÓN POR AUSENCIA</span><h1><?= e(App\AppointmentService::code((int) $appointment['id'])) ?> · <?= e($appointment['paciente']) ?></h1><p>Turno actual: <?= e(clinic_datetime($appointment['inicio'])) ?> · <?= e($appointment['especialidad']) ?></p></div></div>
 <?php require BASE_PATH.'/views/_appointment_errors.php'; ?>
 <section class="card"><h2>Buscar una alternativa de la misma especialidad</h2>

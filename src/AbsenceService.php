@@ -8,18 +8,47 @@ use App\Repositories\DoctorRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\UserRepository;
 
+/**
+ * Ausencias de médicos (CU26): registro del intervalo, aviso a los pacientes con citas afectadas
+ * y gestión de cada cita (reprogramar o cancelar con origen clínica, sin sanción).
+ */
 final class AbsenceService
 {
+    /**
+     * Valida una fecha y hora del formulario en zona de la clínica.
+     *
+     * @param mixed $value texto Y-m-d\TH:i
+     * @param string $field nombre del campo para el mensaje de error
+     * @return \DateTimeImmutable fecha validada
+     * @throws ValidationException si el formato o la fecha no son válidos
+     */
     public static function date(mixed $value, string $field): \DateTimeImmutable
     {
         $date=is_string($value) ? \DateTimeImmutable::createFromFormat('!Y-m-d\TH:i',$value,new \DateTimeZone('America/La_Paz')) : false;
         if (!$date || (int) $date->format('Y')<1 || $date->format('Y-m-d\TH:i')!==$value) { throw new ValidationException([$field=>'Escribe una fecha y hora válidas.']); }
         return $date;
     }
+    /**
+     * Busca una ausencia por id.
+     *
+     * @param int $id ausencia
+     * @return array datos de la ausencia
+     * @throws HttpException 404 si no existe
+     */
     public static function find(int $id): array
     {
         return AbsenceRepository::find($id) ?: throw new HttpException(404,'No se encontró la ausencia.');
     }
+    /**
+     * Registra la ausencia (CU26) y crea un aviso para cada cita vigente que se cruce con el intervalo.
+     * Porqué: la clave de envío hace la operación idempotente; un reenvío idéntico devuelve la ausencia ya creada.
+     *
+     * @param array $input médico, inicio, fin, motivo y clave de envío
+     * @param int $user usuario que registra
+     * @return int identificador de la ausencia
+     * @throws ValidationException si los datos no son válidos o la clave se usó con otros datos
+     * @throws HttpException 403 sin permiso CU26
+     */
     public static function create(array $input, int $user): int
     {
         $doctor=AvailabilityService::id($input['medico_id'] ?? null);
@@ -48,6 +77,13 @@ final class AbsenceService
             return $id;
         });
     }
+    /**
+     * Indica si una cita sigue pendiente de gestión por una ausencia: mismo médico, vigente y con solape de horario.
+     *
+     * @param array $absence ausencia
+     * @param array $appointment cita
+     * @return bool true si la cita aún debe gestionarse
+     */
     public static function pending(array $absence, array $appointment): bool
     {
         return (int) $absence['medico_id']===(int) $appointment['medico_id']
@@ -55,6 +91,18 @@ final class AbsenceService
             && new \DateTimeImmutable($appointment['inicio'])<new \DateTimeImmutable($absence['fin'])
             && new \DateTimeImmutable($appointment['fin'])>new \DateTimeImmutable($absence['inicio']);
     }
+    /**
+     * Reprograma o cancela una cita afectada (CU26). El cambio queda con origen "clínica", así no sanciona al paciente.
+     * Porqué: exige aceptación del paciente registrada, y revalida el estado de la cita con los médicos bloqueados.
+     *
+     * @param int $id ausencia
+     * @param int $appointment cita afectada
+     * @param array $input acción, motivo, aceptación, nuevo turno (si reprograma) y versión
+     * @param int $user usuario de recepción
+     * @return void
+     * @throws ValidationException si falta la aceptación, la acción no es válida o la cita ya no está pendiente
+     * @throws HttpException 403 o 404 según el acceso
+     */
     public static function manage(int $id, int $appointment, array $input, int $user): void
     {
         $reason=AppointmentService::reason($input,'motivo_cambio');

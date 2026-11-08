@@ -96,6 +96,11 @@ $check(App\Validation::doctor($doctor) === [],'Contacto de médico puede quedar 
 foreach (['registro_profesional'=>'','telefono'=>'123','correo'=>'invalido','nombres'=>'<script>'] as $key=>$value) {
     $check(isset(App\Validation::doctor(array_replace($doctor,[$key=>$value]))[$key]),'Dato inválido de médico rechazado: ' . $key);
 }
+$check(App\DoctorService::specialtyFilter('3',[1,3,5])===3,'Filtro de especialidad acepta un id activo');
+$check(App\DoctorService::specialtyFilter('2',[1,3,5])===null,'Filtro de especialidad ignora un id inactivo o inexistente');
+foreach ([null,'','0','-1','1.0','3 OR 1=1','3abc',['3'],'99999999999999999999999'] as $badSpecialty) {
+    $check(App\DoctorService::specialtyFilter($badSpecialty,[1,3,5])===null,'Filtro de especialidad rechaza valor malformado');
+}
 
 $schedule=['medico_id'=>'1','dia_semana'=>'1','hora_inicio'=>'08:00','hora_fin'=>'12:00'];
 $check(App\Validation::schedule($schedule)===[],'Horario semanal válido');

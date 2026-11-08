@@ -1,3 +1,4 @@
+<?php /* Formulario de alta o edición de usuario (CU04). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1><?= $editing ? 'Editar usuario' : 'Nuevo usuario' ?></h1><p>Define su cuenta y el rol que le corresponde.</p></div><a href="/usuarios" class="button quiet">Volver</a></div>
 <section class="card form-card">
     <?php if (isset($errors['general'])): ?><div class="alert error" role="alert"><?= e($errors['general']) ?></div><?php endif; ?>

@@ -8,10 +8,28 @@ use App\Repositories\SpecialtyRepository;
 use App\Repositories\UserRepository;
 use PDOException;
 
+/**
+ * Médicos (CU08): datos profesionales, especialidades asignadas y vínculo opcional con una cuenta de Médico.
+ */
 final class DoctorService
 {
+    /** Campos de contacto y registro profesional del médico. */
     public const FIELDS = ['registro_profesional','nombres','apellidos','telefono','correo'];
+    /**
+     * Código visible de un médico, por ejemplo "ME-000002".
+     *
+     * @param int $id identificador interno
+     * @return string código con seis dígitos
+     */
     public static function code(int $id): string { return 'ME-' . str_pad((string) $id,6,'0',STR_PAD_LEFT); }
+    /**
+     * Busca un médico con sus especialidades.
+     *
+     * @param int $id médico
+     * @param bool $lock si es true, bloquea la fila
+     * @return array datos del médico, con la clave "especialidades"
+     * @throws HttpException 404 si no existe
+     */
     public static function find(int $id, bool $lock = false): array
     {
         $row = DoctorRepository::find($id,$lock);
@@ -19,6 +37,12 @@ final class DoctorService
         $row['especialidades'] = DoctorRepository::specialties($id);
         return $row;
     }
+    /**
+     * Huella del médico y de sus especialidades para control de versión.
+     *
+     * @param array $row médico con especialidades
+     * @return string SHA-256 en hexadecimal
+     */
     public static function version(array $row): string
     {
         $data = ['id'=>$row['id'],'usuario_id'=>$row['usuario_id'],'activo'=>$row['activo']];
@@ -26,6 +50,19 @@ final class DoctorService
         $data['especialidades'] = array_map(static fn($e)=>[$e['id'],$e['activo'],$e['asignada']],$row['especialidades']);
         return hash('sha256',json_encode($data,JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
     }
+    /** Devuelve el id de especialidad del filtro solo si es un entero de la lista de especialidades activas. */
+    public static function specialtyFilter(mixed $value, array $activeIds): ?int
+    {
+        if (!is_string($value) || !ctype_digit($value)) { return null; }
+        $id = (int) $value;
+        return in_array($id, array_map('intval', $activeIds), true) ? $id : null;
+    }
+    /**
+     * Prepara los valores del formulario de edición: solo especialidades asignadas y activas.
+     *
+     * @param array $row médico con especialidades
+     * @return array valores para el formulario
+     */
     public static function formValues(array $row): array
     {
         $data=$row;
@@ -33,6 +70,12 @@ final class DoctorService
             array_values(array_filter($row['especialidades'],static fn($e)=>$e['asignada'] && $e['activo'])));
         return $data;
     }
+    /**
+     * Toma y normaliza los datos del médico del formulario. El registro profesional se guarda en mayúsculas.
+     *
+     * @param array $input datos recibidos
+     * @return array datos normalizados
+     */
     public static function data(array $input): array
     {
         $data=[];
@@ -45,6 +88,18 @@ final class DoctorService
             ? array_values(array_filter($input['especialidades'],static fn($x)=>is_string($x) && preg_match('/^[1-9][0-9]{0,17}$/',$x))) : [];
         return $data;
     }
+    /**
+     * Crea o modifica un médico con sus especialidades y cuenta vinculada (CU08).
+     * Porqué: la cuenta vinculada debe ser de rol Médico, estar habilitada y no pertenecer a otro profesional;
+     * las especialidades inactivas ya asignadas se conservan aunque no aparezcan en el selector.
+     *
+     * @param array $input datos del formulario, especialidades, cuenta y versión
+     * @param int $actor usuario administrador
+     * @param int|null $id médico; null para alta
+     * @return int identificador del médico
+     * @throws ValidationException si los datos, el registro profesional, la cuenta o la versión no son válidos
+     * @throws HttpException 403 sin permiso CU08
+     */
     public static function save(array $input, int $actor, ?int $id = null): int
     {
         $data=self::data($input); $errors=Validation::doctor($data);

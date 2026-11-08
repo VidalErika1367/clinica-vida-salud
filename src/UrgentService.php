@@ -8,15 +8,41 @@ use App\Repositories\PatientRepository;
 use App\Repositories\UrgentRepository;
 use App\Repositories\UserRepository;
 
+/**
+ * Solicitudes de cita urgente: creación por el paciente (CU21) y gestión por recepción (CU22).
+ * Una solicitud sin cita queda pendiente; al asignar turno se crea una cita de tipo urgente.
+ */
 final class UrgentService
 {
+    /**
+     * Código visible de una solicitud, por ejemplo "SU-000007".
+     *
+     * @param int $id identificador interno
+     * @return string código con seis dígitos
+     */
     public static function code(int $id): string { return 'SU-'.str_pad((string) $id,6,'0',STR_PAD_LEFT); }
+    /**
+     * Actor para solicitudes urgentes: CU21 para pacientes y CU22 para personal.
+     *
+     * @param int $id usuario
+     * @return array actor autorizado
+     * @throws HttpException 403 si la cuenta no tiene acceso
+     */
     public static function actor(int $id): array
     {
         $user=UserRepository::sessionAccount($id);
         if (!$user) { throw new HttpException(403,'La cuenta ya no tiene acceso.'); }
         return AppointmentService::actor($id,$user['rol']==='paciente' ? 'CU21' : 'CU22');
     }
+    /**
+     * Busca una solicitud urgente respetando el alcance del actor (el paciente solo ve las suyas).
+     *
+     * @param int $id solicitud
+     * @param array $actor usuario autenticado
+     * @param bool $lock si es true, bloquea la fila
+     * @return array datos de la solicitud
+     * @throws HttpException 404 si no existe; 403 si el paciente no es su propietario
+     */
     public static function find(int $id, array $actor, bool $lock=false): array
     {
         $row=UrgentRepository::find($id,$lock);
@@ -26,10 +52,27 @@ final class UrgentService
         }
         return $row;
     }
+    /**
+     * Huella de la solicitud para control de versión.
+     *
+     * @param array $row solicitud
+     * @return string SHA-256 en hexadecimal
+     */
     public static function version(array $row): string
     {
         return CareSupport::version($row,['id','paciente_id','motivo','contacto','estado','cita_id','resolucion','gestionado_por']);
     }
+    /**
+     * Crea la solicitud urgente del paciente (CU21). Es idempotente por la clave de envío del formulario.
+     * Porqué: si el formulario se reenvía, se devuelve la solicitud ya creada en lugar de duplicarla;
+     * si llega con otros datos, se rechaza.
+     *
+     * @param array $input motivo, contacto, clave de envío y paciente opcional
+     * @param int $userId usuario paciente
+     * @return int identificador de la solicitud
+     * @throws ValidationException si los datos no son válidos o la clave ya se usó con otros datos
+     * @throws HttpException 403 si la cuenta no tiene ficha de paciente o pide para otro paciente
+     */
     public static function create(array $input, int $userId): int
     {
         $reason=CareSupport::text($input,'motivo',500);
@@ -58,6 +101,18 @@ final class UrgentService
             return $id;
         });
     }
+    /**
+     * Gestiona una solicitud pendiente (CU22): seguimiento, asignación de cita o cierre.
+     * Porqué: asignar a un paciente inactivo o con multas exige una excepción explícita registrada;
+     * la asignación revalida el turno dentro de la transacción.
+     *
+     * @param int $id solicitud
+     * @param array $input acción, resolución, versión y datos de asignación
+     * @param int $userId usuario de recepción
+     * @return void
+     * @throws ValidationException si la acción no es válida, falta una confirmación o el turno ya no está libre
+     * @throws HttpException 403 sin permiso CU22; 404 si no existe
+     */
     public static function manage(int $id, array $input, int $userId): void
     {
         $resolution=CareSupport::text($input,'resolucion',500);

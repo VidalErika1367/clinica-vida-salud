@@ -1,3 +1,4 @@
+<?php /* Parcial de la ficha de médico o especialidad: próximas citas (CU08, CU09). */ ?>
 <section class="card"><h2>Citas futuras relacionadas</h2>
 <?php $review=count(array_filter($upcoming,static fn($c)=>$c['revisar'])); ?>
 <?php if ($review): ?><div class="alert warning"><?= (int) $review ?> cita(s) del listado necesitan revisión por cambios en el médico o la especialidad. Coordina su gestión con recepción. Se conservan los turnos y su historial.</div><?php endif; ?>

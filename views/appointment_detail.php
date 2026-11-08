@@ -1,3 +1,4 @@
+<?php /* Detalle de una cita: historial, incidencias y contador (CU13, CU14, CU15, CU16, CU17, CU19, CU29). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS MÉDICAS</span><h1>Cita <?= e(App\AppointmentService::code((int) $appointment['id'])) ?></h1><p>Datos de la reserva y registro de cambios.</p></div><span class="pill"><?= e(ucfirst($appointment['estado'])) ?></span></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card form-card"><dl class="account-details patient-details">

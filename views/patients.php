@@ -1,3 +1,4 @@
+<?php /* Listado de pacientes con búsqueda y estado (CU06). */ ?>
 <div class="page-heading"><div><span class="eyebrow">PACIENTES</span><h1>Pacientes</h1><p>Busca y administra sus datos personales y de contacto.</p></div><a class="button primary" href="/pacientes/nuevo">+ Nuevo paciente</a></div>
 <section class="card">
     <form class="patient-search" method="get" action="/pacientes">

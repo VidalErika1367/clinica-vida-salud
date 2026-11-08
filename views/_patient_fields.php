@@ -1,3 +1,4 @@
+<?php /* Parcial de datos administrativos del paciente (CU06). */ ?>
 <div class="form-grid">
     <label>CI<input name="ci" maxlength="30" value="<?= old($old,'ci') ?>" <?= isset($registration) ? 'required' : '' ?>><?= field_error($errors,'ci') ?></label>
     <label>Teléfono<input type="tel" name="telefono" autocomplete="tel" maxlength="30" value="<?= old($old,'telefono') ?>" <?= isset($registration) ? 'required' : '' ?>><?= field_error($errors,'telefono') ?></label>

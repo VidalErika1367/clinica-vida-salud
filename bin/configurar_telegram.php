@@ -1,5 +1,13 @@
 <?php
 declare(strict_types=1);
+/*
+ * Verifica el bot de Telegram y configura el modo de recepción (CU27-CU28).
+ *
+ * Uso: php bin/configurar_telegram.php
+ * Requiere TELEGRAM_BOT_TOKEN y TELEGRAM_BOT_USERNAME en .env o en el entorno. Si TELEGRAM_MODO es "webhook",
+ * también APP_URL (HTTPS) y TELEGRAM_WEBHOOK_SECRET. En cualquier otro caso elimina el webhook y el bot usa polling.
+ * Solo se ejecuta desde la línea de comandos.
+ */
 require dirname(__DIR__).'/bootstrap.php';
 if (PHP_SAPI!=='cli') { http_response_code(404); exit; }
 try {

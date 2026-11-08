@@ -1,5 +1,14 @@
 <?php
 declare(strict_types=1);
+/*
+ * Preparación del servidor de despliegue (Render): aplica las migraciones y crea el primer administrador
+ * a partir de variables de entorno. Si ya existe un administrador habilitado, lo conserva.
+ *
+ * Uso: php bin/preparar_servidor.php (lo ejecuta deploy/start.sh al arrancar el servidor).
+ * Requiere DB_HOST, DB_NAME, DB_USER y DB_PASSWORD; para el primer administrador, CLINICA_ADMIN_USER,
+ * CLINICA_ADMIN_EMAIL y CLINICA_ADMIN_PASSWORD. Usa un candado de PostgreSQL para que dos arranques
+ * simultáneos no creen dos administradores. No imprime credenciales ni detalles de conexión.
+ */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require dirname(__DIR__) . '/bootstrap.php';
 

@@ -4,8 +4,18 @@ namespace App\Repositories;
 
 use App\Database;
 
+/**
+ * Acceso a la tabla paciente (CU06, CU07, CU25). Las fichas nunca se borran; se desactivan.
+ */
 final class PatientRepository
 {
+    /**
+     * Busca pacientes por CI, nombres, apellidos o nombre completo. Máximo 200 filas.
+     *
+     * @param string $query texto de búsqueda
+     * @param string $state "activos", "inactivos" o cualquier otro valor para todos
+     * @return array pacientes
+     */
     public static function search(string $query, string $state): array
     {
         $filter = match ($state) {
@@ -21,6 +31,13 @@ final class PatientRepository
             [$pattern,$pattern,$pattern,$pattern])->fetchAll();
     }
 
+    /**
+     * Busca un paciente con los datos de su cuenta de acceso, si la tiene.
+     *
+     * @param int $id paciente
+     * @param bool $lock si es true, bloquea la fila (FOR UPDATE)
+     * @return array|false paciente o false
+     */
     public static function find(int $id, bool $lock = false): array|false
     {
         return Database::run('SELECT p.*,u.nombre_usuario,u.habilitado AS cuenta_habilitada
@@ -28,6 +45,12 @@ final class PatientRepository
             . ($lock ? ' FOR UPDATE OF p' : ''), [$id])->fetch();
     }
 
+    /**
+     * Inserta un paciente nuevo.
+     *
+     * @param array $data datos ya validados
+     * @return int identificador del paciente
+     */
     public static function create(array $data): int
     {
         return (int) Database::run('INSERT INTO paciente(ci,nombres,apellidos,fecha_nacimiento,
@@ -35,6 +58,12 @@ final class PatientRepository
             self::values($data))->fetchColumn();
     }
 
+    /**
+     * Convierte las cadenas vacías en NULL para las columnas opcionales, en el orden de los parámetros SQL.
+     *
+     * @param array $data datos del paciente
+     * @return array valores para INSERT o UPDATE
+     */
     private static function values(array $data): array
     {
         return [$data['ci'],$data['nombres'],$data['apellidos'],
@@ -44,17 +73,36 @@ final class PatientRepository
             $data['direccion'] === '' ? null : $data['direccion']];
     }
 
+    /**
+     * Actualiza los datos administrativos de un paciente.
+     *
+     * @param int $id paciente
+     * @param array $data datos ya validados
+     * @return void
+     */
     public static function update(int $id, array $data): void
     {
         Database::run('UPDATE paciente SET ci=?,nombres=?,apellidos=?,fecha_nacimiento=?,
             sexo=?,telefono=?,correo=?,direccion=? WHERE id=?', [...self::values($data), $id]);
     }
 
+    /**
+     * Desactiva el paciente. No borra citas, multas ni la cuenta.
+     *
+     * @param int $id paciente
+     * @return void
+     */
     public static function deactivate(int $id): void
     {
         Database::run('UPDATE paciente SET activo=false WHERE id=?', [$id]);
     }
 
+    /**
+     * Resumen para la ficha: total de citas, citas vigentes y multas pendientes.
+     *
+     * @param int $id paciente
+     * @return array contadores
+     */
     public static function summary(int $id): array
     {
         return [
@@ -67,6 +115,14 @@ final class PatientRepository
         ];
     }
 
+    /**
+     * Crea o actualiza la ficha vinculada a una cuenta de paciente (registro público, CU01).
+     * Porqué: una cuenta tiene una sola ficha; el ON CONFLICT evita duplicados si se repite el registro.
+     *
+     * @param int $userId cuenta de usuario
+     * @param array $data identidad y contacto
+     * @return void
+     */
     public static function saveAccountIdentity(int $userId, array $data): void
     {
         Database::run('INSERT INTO paciente(usuario_id,ci,nombres,apellidos,telefono,correo) VALUES(?,?,?,?,?,?)

@@ -1,3 +1,4 @@
+<?php /* Listado de horarios de atención (CU10). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Horarios de atención</h1><p>Organiza la disponibilidad semanal de cada médico.</p></div><a class="button primary" href="/horarios/nuevo<?= $doctorId ? '?medico_id=' . (int) $doctorId : '' ?>">+ Nuevo horario</a></div>
 <section class="card">
 <form class="schedule-search" method="get" action="/horarios">

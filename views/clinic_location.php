@@ -1,3 +1,4 @@
+<?php /* Ubicación y mapa de la clínica (ruta /ubicacion; sin CU propio). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CLÍNICA VIDA SALUD</span><h1>Ubicación de la clínica</h1><p>Consulta dónde se encuentra la clínica antes de tu visita.</p></div></div>
 <section class="card form-card">
 <h2>Cómo llegar</h2>

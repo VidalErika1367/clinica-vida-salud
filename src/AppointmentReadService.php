@@ -6,11 +6,23 @@ use App\Repositories\AvailabilityRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\SpecialtyRepository;
 
+/**
+ * Filtros, paginación y consultas de lectura de citas: agenda (CU18), historial (CU19) y reportes (CU20).
+ * Todas las consultas de lectura se hacen en una transacción de solo lectura y aislamiento REPEATABLE READ.
+ */
 final class AppointmentReadService
 {
+    /** Estados de cita disponibles como filtro. */
     public const STATES=['todos'=>'Todos','programada'=>'Programada','confirmada'=>'Confirmada',
         'atendida'=>'Atendida','cancelada'=>'Cancelada','inasistencia'=>'Inasistencia'];
 
+    /**
+     * Valida el número de página del listado.
+     *
+     * @param mixed $value página recibida (vacía significa la primera)
+     * @return int página válida, mínimo 1
+     * @throws ValidationException si no es un entero positivo razonable
+     */
     public static function page(mixed $value): int
     {
         if ($value===null || $value==='') { return 1; }
@@ -19,12 +31,29 @@ final class AppointmentReadService
         }
         return (int) $value;
     }
+    /**
+     * Lee un filtro de texto; rechaza valores que no sean cadenas.
+     *
+     * @param array $input datos de la petición
+     * @param string $key filtro
+     * @param string $default valor si el campo no viene
+     * @return string texto recortado
+     * @throws ValidationException si el valor no es texto
+     */
     private static function text(array $input, string $key, string $default=''): string
     {
         if (!array_key_exists($key,$input)) { return $default; }
         if (!is_string($input[$key])) { throw new ValidationException([$key=>'Revisa el filtro seleccionado.']); }
         return trim($input[$key]);
     }
+    /**
+     * Valida una fecha de filtro en formato Y-m-d.
+     *
+     * @param string $value fecha
+     * @param string $field campo para el mensaje de error
+     * @return string la misma fecha
+     * @throws ValidationException si la fecha no existe o es anterior a 0001-01-01
+     */
     public static function date(string $value, string $field): string
     {
         $date=\DateTimeImmutable::createFromFormat('!Y-m-d',$value,new \DateTimeZone('America/La_Paz'));
@@ -33,6 +62,14 @@ final class AppointmentReadService
         }
         return $value;
     }
+    /**
+     * Lee un identificador opcional de un filtro.
+     *
+     * @param array $input datos de la petición
+     * @param string $key filtro
+     * @return int|null id, o null si el filtro está vacío
+     * @throws ValidationException si el valor no es un id válido
+     */
     private static function id(array $input, string $key): ?int
     {
         $value=self::text($input,$key);
@@ -42,6 +79,14 @@ final class AppointmentReadService
         }
         return (int) $value;
     }
+    /**
+     * Arma el conjunto de filtros comunes: rango de fechas (por defecto hoy), estado, médico y especialidad.
+     *
+     * @param array $input datos de la petición
+     * @param bool $oneDay true para consultar un solo día (agenda)
+     * @return array filtros normalizados
+     * @throws ValidationException si una fecha, el rango o un filtro no son válidos
+     */
     private static function filters(array $input, bool $oneDay=false): array
     {
         $today=AvailabilityRepository::clock()['hoy'];
@@ -53,6 +98,13 @@ final class AppointmentReadService
         return ['desde'=>$from,'hasta'=>$to,'estado'=>$state,'medico_id'=>self::id($input,'medico_id'),
             'especialidad_id'=>self::id($input,'especialidad_id')];
     }
+    /**
+     * Ejecuta una lectura en transacción de solo lectura con REPEATABLE READ.
+     * Porqué: resumen, listado y totales reflejan el mismo instante aunque haya cambios concurrentes.
+     *
+     * @param callable $operation consulta a ejecutar
+     * @return array resultado
+     */
     private static function snapshot(callable $operation): array
     {
         return Database::transaction(function () use ($operation): array {
@@ -60,6 +112,15 @@ final class AppointmentReadService
             return $operation();
         });
     }
+    /**
+     * Agenda de un día (CU18). El médico solo ve su propia agenda, incluso si su cuenta aún no está vinculada.
+     *
+     * @param array $input filtros de fecha, médico y página
+     * @param int $userId usuario que consulta
+     * @return array datos para la vista
+     * @throws HttpException 403 si un médico pide la agenda de otro
+     * @throws ValidationException si los filtros no son válidos
+     */
     public static function agenda(array $input, int $userId): array
     {
         $actor=AppointmentService::actor($userId,'CU18');
@@ -82,6 +143,15 @@ final class AppointmentReadService
                 'listing'=>AppointmentReadRepository::appointments($filters,self::page($input['pagina'] ?? null))];
         });
     }
+    /**
+     * Historial de citas de un paciente (CU19). Un paciente solo consulta el suyo.
+     *
+     * @param array $input filtros de paciente, fechas, estado y texto
+     * @param int $userId usuario que consulta
+     * @return array datos para la vista
+     * @throws HttpException 403 si un paciente pide el historial de otro
+     * @throws ValidationException si el paciente o los filtros no son válidos
+     */
     public static function history(array $input, int $userId): array
     {
         $actor=AppointmentService::actor($userId,'CU19');
@@ -109,6 +179,16 @@ final class AppointmentReadService
                 'patients'=>$actor['rol']==='paciente' ? [] : PatientRepository::search($query,'todos')];
         });
     }
+    /**
+     * Reportes administrativos (CU20): citas, pagos o pacientes registrados, con filtros validados contra catálogos.
+     * Porqué: médico y especialidad se comprueban contra los catálogos reales antes de consultar, para no filtrar por ids inexistentes.
+     *
+     * @param array $input tipo de reporte y filtros
+     * @param int $userId usuario que consulta
+     * @return array datos para la vista
+     * @throws HttpException 403 sin permiso CU20
+     * @throws ValidationException si el tipo, los filtros o el catálogo no son válidos
+     */
     public static function report(array $input, int $userId): array
     {
         AppointmentService::actor($userId,'CU20');

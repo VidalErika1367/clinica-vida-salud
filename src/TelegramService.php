@@ -5,12 +5,32 @@ use App\Repositories\AuditRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\UserRepository;
 
+/**
+ * Vinculación del paciente con Telegram (CU27): token de un solo uso con caducidad de 10 minutos,
+ * consentimiento explícito, desactivación y procesamiento de comandos del bot (/start, /stop).
+ */
 final class TelegramService
 {
+    /**
+     * Estado de la vinculación del paciente.
+     *
+     * @param int $patient paciente
+     * @return array|false datos de activo y consentimiento, o false si nunca se vinculó
+     */
     public static function link(int $patient): array|false
     {
         return Database::run('SELECT activo,consentido_en FROM vinculo_telegram WHERE paciente_id=?',[$patient])->fetch();
     }
+    /**
+     * Genera un enlace de vinculación de un solo uso (CU27). Invalida los enlaces anteriores del paciente.
+     * Porqué: solo se guarda el hash del token; el token en claro viaja únicamente en el enlace que se entrega al paciente.
+     *
+     * @param array $input debe incluir el consentimiento explícito
+     * @param int $user usuario paciente
+     * @return string enlace https://t.me con el token
+     * @throws ValidationException si el bot no está configurado o falta el consentimiento
+     * @throws HttpException 403 si la cuenta no tiene ficha de paciente
+     */
     public static function issue(array $input, int $user): string
     {
         if (!TelegramClient::configured()) { throw new ValidationException(['general'=>'La clínica todavía no habilitó su bot de avisos.']); }
@@ -26,6 +46,13 @@ final class TelegramService
             return 'https://t.me/'.Config::get('TELEGRAM_BOT_USERNAME').'?start='.$token;
         });
     }
+    /**
+     * Desactiva los avisos por Telegram del paciente (CU27) e invalida los tokens pendientes.
+     *
+     * @param int $user usuario paciente
+     * @return void
+     * @throws HttpException 403 si la cuenta no tiene ficha de paciente
+     */
     public static function unlink(int $user): void
     {
         CareSupport::transaction(function () use ($user): void {
@@ -37,13 +64,29 @@ final class TelegramService
             AuditRepository::record($user,'desactivar_telegram','Desactiva el envío de avisos por Telegram.',$id);
         });
     }
+    /**
+     * Verifica el secreto del webhook con comparación en tiempo constante.
+     *
+     * @param mixed $header valor de la cabecera X-Telegram-Bot-Api-Secret-Token
+     * @return bool true si el bot está configurado y el secreto coincide
+     */
     public static function webhookAuthorized(mixed $header): bool
     {
         $secret=Config::get('TELEGRAM_WEBHOOK_SECRET');
         return TelegramClient::configured() && preg_match('/^[A-Za-z0-9_-]{32,256}$/D',$secret)
             && is_string($header) && hash_equals($secret,$header);
     }
-    /** Solo se invoca desde el webhook autenticado o el proceso CLI de Telegram. */
+    /**
+     * Procesa una actualización de Telegram: vincula el chat con un token válido o atiende /stop.
+     * Porqué: cada update_id se registra una sola vez (idempotencia); solo se aceptan chats privados
+     * cuyo remitente coincide con el chat, y el token se consume al usarse.
+     *
+     * Solo se invoca desde el webhook autenticado o el proceso CLI de Telegram.
+     *
+     * @param array $update actualización recibida
+     * @return bool true si se aplicó un cambio
+     * @throws HttpException 422 si el identificador de la actualización no es válido
+     */
     public static function update(array $update): bool
     {
         $id=$update['update_id'] ?? null;
@@ -83,6 +126,11 @@ final class TelegramService
             return true;
         });
     }
+    /**
+     * Contacto oficial de recepción en Telegram, tomado de .env o de parámetros del sistema.
+     *
+     * @return string|null enlace https://t.me válido, o null si no hay un usuario válido configurado
+     */
     public static function contact(): ?string
     {
         $value=trim(Config::get('TELEGRAM_RECEPCION_USUARIO'));

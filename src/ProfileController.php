@@ -2,8 +2,18 @@
 declare(strict_types=1);
 namespace App;
 
+/**
+ * Perfil de salud y contacto de emergencia del propio paciente (CU07).
+ * Solo accesible con rol paciente; no permite ver ni cambiar los datos de otro paciente.
+ */
 final class ProfileController
 {
+    /**
+     * Muestra el perfil del paciente autenticado (CU07).
+     *
+     * @return void
+     * @throws HttpException 403 si no es paciente o no tiene permiso CU07
+     */
     public static function form(): void
     {
         $user = Auth::requireRolePermission('CU07', ['paciente']);
@@ -17,6 +27,12 @@ final class ProfileController
             'old'=>$old,'errors'=>$errors,'version'=>$version ?? ProfileService::version($profile)], $errors ? 422 : 200);
     }
 
+    /**
+     * Guarda los cambios del perfil del paciente (CU07). Usa control de versión para no sobrescribir cambios ajenos.
+     *
+     * @return void
+     * @throws HttpException 403 si no es paciente o no tiene permiso CU07
+     */
     public static function save(): void
     {
         $user = Auth::requireRolePermission('CU07', ['paciente']);

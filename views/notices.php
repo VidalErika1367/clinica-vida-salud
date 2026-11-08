@@ -1,3 +1,4 @@
+<?php /* Avisos del sistema y reintento autorizado de envíos (CU28). */ ?>
 <div class="page-heading"><div><span class="eyebrow">COMUNICACIÓN</span><h1>Avisos del sistema</h1><p>Consulta tus avisos y el estado de sus envíos por Telegram.</p></div></div>
 <?php require BASE_PATH.'/views/_appointment_errors.php'; ?>
 <section class="card"><form class="availability-search" method="get"><label>Estado<select name="estado"><?php foreach (['todos'=>'Todos','pendiente'=>'Pendiente','enviado'=>'Enviado','error'=>'Error','omitido'=>'Sin envío'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= $state===$value ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select></label><button class="button secondary" type="submit">Consultar avisos</button></form></section>

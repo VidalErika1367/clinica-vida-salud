@@ -1,3 +1,4 @@
+<?php /* Reportes administrativos de citas, pagos y pacientes (CU20). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Reportes administrativos</h1><p>Consulta las citas, las altas de pacientes o los pagos de multas del período seleccionado.</p></div></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card">

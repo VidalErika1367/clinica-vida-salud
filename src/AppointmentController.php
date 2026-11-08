@@ -6,13 +6,30 @@ use App\Repositories\AvailabilityRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\SpecialtyRepository;
 
+/**
+ * Citas médicas: listado, detalle, programación (CU12), confirmación (CU13), reprogramación (CU14),
+ * cancelación (CU15), registro de atención (CU16) e inasistencia (CU17).
+ * Cada acción valida el permiso del CU y, para pacientes y médicos, que la cita les pertenezca.
+ */
 final class AppointmentController
 {
+    /**
+     * Exige sesión y, si se indica, el permiso del CU; devuelve el actor con su alcance sobre las citas.
+     *
+     * @param string|null $permission código CU requerido, o null si basta con tener sesión
+     * @return array actor autorizado
+     * @throws HttpException 403 si el actor no puede realizar la acción
+     */
     private static function authorize(?string $permission=null): array
     {
         $user=Auth::requireUser();
         return AppointmentService::actor((int) $user['id'],$permission);
     }
+    /**
+     * Lista de citas filtrada por rol: el paciente ve las suyas y el médico, su agenda.
+     *
+     * @return void
+     */
     public static function index(): void
     {
         $user=self::authorize();
@@ -24,6 +41,14 @@ final class AppointmentController
                 $user['rol']==='medico' ? (int) $user['id'] : null),
             'query'=>$query,'state'=>$state]);
     }
+    /**
+     * Detalle de una cita con su historial paginado, incidencias y contador (CU29 si el rol lo permite).
+     *
+     * @param int $id cita
+     * @param array $errors errores a mostrar en la ficha
+     * @return void
+     * @throws HttpException 403 o 404 según el alcance del actor
+     */
     public static function detail(int $id, array $errors=[]): void
     {
         $user=self::authorize(); $row=AppointmentService::find($id,$user);
@@ -36,6 +61,14 @@ final class AppointmentController
             'counter'=>AppointmentService::allowed($user,'CU29') ? CounterService::forAppointment($id,(int) $user['id']) : null,
             'incident'=>AppointmentRepository::incident($id)],$errors ? 422 : 200);
     }
+    /**
+     * Formulario para programar una cita (CU12). Si faltan datos, redirige a la consulta de disponibilidad.
+     *
+     * @param array|null $posted datos enviados, para conservarlos al mostrar errores
+     * @param array $errors errores de validación
+     * @return void
+     * @throws HttpException 403 sin permiso CU12
+     */
     public static function bookingForm(?array $posted=null, array $errors=[]): void
     {
         $user=self::authorize('CU12');
@@ -59,6 +92,12 @@ final class AppointmentController
             'patient'=>$user['rol']==='paciente' && $user['paciente_id'] ? PatientRepository::find((int) $user['paciente_id']) : null],
             $errors ? 422 : 200);
     }
+    /**
+     * Registra la cita (CU12). La validación de turno libre y el bloqueo se hacen en AppointmentService.
+     *
+     * @return void
+     * @throws HttpException 403 sin permiso CU12
+     */
     public static function book(): void
     {
         $user=self::authorize('CU12');
@@ -68,6 +107,13 @@ final class AppointmentController
             redirect('/citas/'.$id);
         } catch (ValidationException $e) { self::bookingForm($_POST,$e->errors); }
     }
+    /**
+     * Confirma la asistencia a la cita (CU13).
+     *
+     * @param int $id cita
+     * @return void
+     * @throws HttpException 403 sin permiso CU13
+     */
     public static function confirm(int $id): void
     {
         $user=self::authorize('CU13');
@@ -77,6 +123,15 @@ final class AppointmentController
             redirect('/citas/'.$id);
         } catch (ValidationException $e) { self::detail($id,$e->errors); }
     }
+    /**
+     * Formulario para reprogramar una cita (CU14). El paciente no puede cambiar de médico desde aquí.
+     *
+     * @param int $id cita
+     * @param array|null $posted datos enviados
+     * @param array $errors errores de validación
+     * @return void
+     * @throws HttpException 403 sin permiso CU14 o si un paciente intenta cambiar de médico
+     */
     public static function rescheduleForm(int $id, ?array $posted=null, array $errors=[]): void
     {
         $user=self::authorize('CU14'); $row=AppointmentService::find($id,$user);
@@ -99,6 +154,13 @@ final class AppointmentController
             'date'=>$date,'today'=>$clock['hoy'],'slots'=>$slots,'late'=>$late,'policy'=>$policy],
             $errors ? 422 : 200);
     }
+    /**
+     * Reprograma la cita (CU14). Aplica el plazo de cancelación definido en la política.
+     *
+     * @param int $id cita
+     * @return void
+     * @throws HttpException 403 sin permiso CU14
+     */
     public static function reschedule(int $id): void
     {
         $user=self::authorize('CU14');
@@ -108,6 +170,15 @@ final class AppointmentController
             redirect('/citas/'.$id);
         } catch (ValidationException $e) { self::rescheduleForm($id,$_POST,$e->errors); }
     }
+    /**
+     * Formulario de cancelación (CU15), con el plazo y la hora de referencia de la clínica.
+     *
+     * @param int $id cita
+     * @param array|null $posted datos enviados
+     * @param array $errors errores de validación
+     * @return void
+     * @throws HttpException 403 sin permiso CU15
+     */
     public static function cancelForm(int $id, ?array $posted=null, array $errors=[]): void
     {
         $user=self::authorize('CU15'); $row=AppointmentService::find($id,$user);
@@ -116,6 +187,13 @@ final class AppointmentController
                 ? AppointmentService::version($row) : input('version'),'policy'=>AppointmentRepository::policy(),
             'clock'=>AvailabilityRepository::clock()],$errors ? 422 : 200);
     }
+    /**
+     * Cancela la cita (CU15). Conserva el registro; la cancelación tardía queda marcada según la política.
+     *
+     * @param int $id cita
+     * @return void
+     * @throws HttpException 403 sin permiso CU15
+     */
     public static function cancel(int $id): void
     {
         $user=self::authorize('CU15');
@@ -125,6 +203,17 @@ final class AppointmentController
             redirect('/citas/'.$id);
         } catch (ValidationException $e) { self::cancelForm($id,$_POST,$e->errors); }
     }
+    /**
+     * Formulario para registrar la atención (CU16) o la inasistencia (CU17).
+     * La atención solo se habilita en citas programadas o confirmadas ya iniciadas.
+     *
+     * @param int $id cita
+     * @param bool $noShow true para inasistencia (CU17), false para atención (CU16)
+     * @param array|null $posted datos enviados
+     * @param array $errors errores de validación
+     * @return void
+     * @throws HttpException 403 sin el permiso del CU correspondiente
+     */
     public static function finishForm(int $id, bool $noShow=false, ?array $posted=null, array $errors=[]): void
     {
         $user=self::authorize($noShow ? 'CU17' : 'CU16'); $row=AppointmentService::find($id,$user);
@@ -135,6 +224,14 @@ final class AppointmentController
             'version'=>isset($errors['version']) || $posted===null ? AppointmentService::version($row) : input('version'),
             'doctorAbsent'=>AppointmentRepository::doctorAbsent($row),'policy'=>AppointmentRepository::policy()],$errors ? 422 : 200);
     }
+    /**
+     * Registra la atención (CU16) o la inasistencia (CU17). La inasistencia puede generar advertencia o multa.
+     *
+     * @param int $id cita
+     * @param bool $noShow true para inasistencia
+     * @return void
+     * @throws HttpException 403 sin el permiso del CU correspondiente
+     */
     public static function finish(int $id, bool $noShow=false): void
     {
         $user=self::authorize($noShow ? 'CU17' : 'CU16');

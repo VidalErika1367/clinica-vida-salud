@@ -1,3 +1,4 @@
+<?php /* Formulario de horario de atención de un médico (CU10). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1><?= $item ? 'Editar horario' : 'Nuevo horario' ?></h1><p>Define un tramo semanal para un médico.</p></div><a class="button quiet" href="/horarios">Volver al listado</a></div>
 <section class="card form-card">
 <?php foreach (['general','version'] as $key): ?><?php if (isset($errors[$key])): ?><div class="alert error" role="alert"><?= e($errors[$key]) ?></div><?php endif; ?><?php endforeach; ?>

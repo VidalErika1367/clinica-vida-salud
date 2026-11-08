@@ -1,1 +1,1 @@
-<?php if ($errors): ?><div class="alert error" role="alert"><strong>Revisa la solicitud.</strong><ul><?php foreach ($errors as $message): ?><li><?= e($message) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
+<?php /* Parcial de citas: mensajes de error del formulario (CU12-CU17, CU26). */if ($errors): ?><div class="alert error" role="alert"><strong>Revisa la solicitud.</strong><ul><?php foreach ($errors as $message): ?><li><?= e($message) ?></li><?php endforeach; ?></ul></div><?php endif; ?>

@@ -3,21 +3,45 @@ declare(strict_types=1);
 namespace App\Repositories;
 use App\Database;
 
+/**
+ * Consultas de lectura para agenda (CU18), historial (CU19) y reportes (CU20). Solo SELECT; sin escrituras.
+ * Todos los filtros van como parámetros; los nombres de columna se toman de listas fijas del código.
+ */
 final class AppointmentReadRepository
 {
+    /** Uniones comunes de cita con paciente, médico y especialidad. */
     private const JOINS=" FROM cita c JOIN paciente p ON p.id=c.paciente_id
         JOIN medico m ON m.id=c.medico_id JOIN especialidad e ON e.id=c.especialidad_id ";
 
+    /**
+     * Médicos para los filtros; con usuario, solo el vinculado a esa cuenta.
+     *
+     * @param int|null $userId usuario médico, o null para todos
+     * @return array médicos con id, nombre y estado
+     */
     public static function doctors(?int $userId=null): array
     {
         return Database::run("SELECT id,nombres || ' ' || apellidos AS nombre,activo FROM medico"
             . ($userId===null ? '' : ' WHERE usuario_id=?') . ' ORDER BY apellidos,nombres,id',
             $userId===null ? [] : [$userId])->fetchAll();
     }
+    /**
+     * Primera fecha con actividad del paciente, para usarla como inicio del historial. Nunca es posterior a hoy.
+     *
+     * @param int $patientId paciente
+     * @return string fecha Y-m-d
+     */
     public static function firstDate(int $patientId): string
     {
         return Database::run('SELECT LEAST(COALESCE(min(inicio)::date,current_date),current_date)::text FROM cita WHERE paciente_id=?',[$patientId])->fetchColumn();
     }
+    /**
+     * Construye la cláusula WHERE con parámetros. Solo añade condiciones de columnas conocidas.
+     *
+     * @param array $filters filtros normalizados
+     * @param string $dateColumn columna de fecha a filtrar
+     * @return array{0:string,1:array} cláusula y valores en orden
+     */
     private static function where(array $filters, string $dateColumn='c.inicio'): array
     {
         $where=["$dateColumn>=?::date","$dateColumn<(?::date+1)"];
@@ -31,6 +55,13 @@ final class AppointmentReadRepository
         }
         return [' WHERE '.implode(' AND ',$where),$values];
     }
+    /**
+     * Listado paginado de citas (50 por página) con sus totales.
+     *
+     * @param array $filters filtros normalizados
+     * @param int $page página (desde 1)
+     * @return array items, total, página y número de páginas
+     */
     public static function appointments(array $filters, int $page): array
     {
         [$where,$values]=self::where($filters);
@@ -41,6 +72,12 @@ final class AppointmentReadRepository
             .' ORDER BY c.inicio DESC,c.id DESC LIMIT 50 OFFSET ?',[...$values,($page-1)*50])->fetchAll();
         return ['items'=>$items,'total'=>$total,'page'=>$page,'pages'=>max(1,(int) ceil($total/50))];
     }
+    /**
+     * Totales de citas por estado dentro del rango (resumen del reporte de citas).
+     *
+     * @param array $filters filtros normalizados
+     * @return array|false contadores
+     */
     public static function activity(array $filters): array
     {
         [$where,$values]=self::where($filters);
@@ -51,6 +88,13 @@ final class AppointmentReadRepository
             count(*) FILTER(WHERE c.estado='cancelada') AS canceladas,
             count(*) FILTER(WHERE c.estado='inasistencia') AS inasistencias".self::JOINS.$where,$values)->fetch();
     }
+    /**
+     * Pacientes dados de alta en el rango, con conteo de activos e inactivos (reporte de pacientes).
+     *
+     * @param array $filters filtros normalizados, incluido el estado del paciente
+     * @param int $page página (desde 1)
+     * @return array items, totales por estado y paginación
+     */
     public static function registeredPatients(array $filters, int $page): array
     {
         $where=' WHERE p.creado_en>=?::date AND p.creado_en<(?::date+1)';
@@ -70,6 +114,13 @@ final class AppointmentReadRepository
             'inactivos'=>(int) $summary['inactivos'],'page'=>$page,
             'pages'=>max(1,(int) ceil((int) $summary['total']/50))];
     }
+    /**
+     * Pagos de multas registrados en el rango (reporte de pagos). Una fila por pago.
+     *
+     * @param array $filters filtros normalizados
+     * @param int $page página (desde 1)
+     * @return array items, total de pagos, monto total y paginación
+     */
     public static function payments(array $filters, int $page): array
     {
         [$where,$values]=self::where($filters,'pm.pagado_en');
@@ -87,6 +138,12 @@ final class AppointmentReadRepository
         return ['items'=>$items,'total'=>(int) $summary['total'],'monto'=>$summary['monto'],
             'page'=>$page,'pages'=>max(1,(int) ceil((int) $summary['total']/50))];
     }
+    /**
+     * Ausencias de médicos que se cruzan con el rango de fechas (se muestran en la agenda).
+     *
+     * @param array $filters filtros normalizados
+     * @return array ausencias con médico, intervalo y motivo
+     */
     public static function absences(array $filters): array
     {
         $where=["a.inicio<(?::date+1)",'a.fin>?::date']; $values=[$filters['hasta'],$filters['desde']];

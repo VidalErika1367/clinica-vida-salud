@@ -8,15 +8,34 @@ use App\Repositories\ScheduleRepository;
 use App\Repositories\UserRepository;
 use PDOException;
 
+/**
+ * Horarios semanales de atención (CU10). Un cambio no puede dejar citas vigentes sin horario:
+ * en ese caso se rechaza y se devuelven las citas afectadas.
+ */
 final class ScheduleService
 {
+    /** Nombre de cada día de la semana (1 = lunes). */
     public const DAYS=[1=>'Lunes',2=>'Martes',3=>'Miércoles',4=>'Jueves',5=>'Viernes',6=>'Sábado',7=>'Domingo'];
+    /**
+     * Busca un horario por id.
+     *
+     * @param int $id horario
+     * @param bool $lock si es true, bloquea la fila
+     * @return array datos del horario
+     * @throws HttpException 404 si no existe
+     */
     public static function find(int $id, bool $lock=false): array
     {
         $row=ScheduleRepository::find($id,$lock);
         if (!$row) { throw new HttpException(404,'No se encontró el horario.'); }
         return $row;
     }
+    /**
+     * Toma los campos del horario del formulario.
+     *
+     * @param array $input datos recibidos
+     * @return array datos del horario
+     */
     public static function data(array $input): array
     {
         $data=[];
@@ -26,15 +45,39 @@ final class ScheduleService
         $data['activo']=($input['activo'] ?? '')==='1';
         return $data;
     }
+    /**
+     * Convierte un horario de la base en valores de formulario (horas en HH:MM).
+     *
+     * @param array $row horario
+     * @return array valores para el formulario
+     */
     public static function formValues(array $row): array
     {
         return ['medico_id'=>(string) $row['medico_id'],'dia_semana'=>(string) $row['dia_semana'],
             'hora_inicio'=>substr($row['hora_inicio'],0,5),'hora_fin'=>substr($row['hora_fin'],0,5),'activo'=>$row['activo']];
     }
+    /**
+     * Huella del horario y del estado del médico para control de versión.
+     *
+     * @param array $row horario con el estado del médico
+     * @return string SHA-256 en hexadecimal
+     */
     public static function version(array $row): string
     {
         return hash('sha256',json_encode([$row['id'],self::formValues($row),$row['medico_activo']],JSON_THROW_ON_ERROR));
     }
+    /**
+     * Guarda el horario (CU10). Bloquea a los médicos implicados y compara las citas sin cobertura antes y después.
+     * Porqué: solo se rechazan las citas que quedan fuera por este cambio; las que ya estaban sin cobertura no bloquean el guardado.
+     *
+     * @param array $input datos del formulario y versión
+     * @param int $actor usuario administrador
+     * @param int|null $id horario; null para alta
+     * @return int identificador del horario
+     * @throws ValidationException si los datos no son válidos, el médico no está activo o la versión cambió
+     * @throws ScheduleConflictException si el cambio deja citas vigentes fuera del horario
+     * @throws HttpException 403 sin permiso CU10; 404 si el horario no existe
+     */
     public static function save(array $input, int $actor, ?int $id=null): int
     {
         $data=self::data($input); $errors=Validation::schedule($data);

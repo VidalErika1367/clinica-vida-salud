@@ -1,3 +1,4 @@
+<?php /* Agenda médica del día (CU18). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ORGANIZACIÓN DIARIA</span><h1>Agenda médica</h1><p>Consulta las citas asignadas y las ausencias registradas para una fecha.</p></div></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <?php if ($user['rol']==='medico' && !$doctors): ?><div class="alert warning">Tu cuenta todavía no está vinculada a un médico. Solicita a administración que revise la vinculación.</div><?php endif; ?>

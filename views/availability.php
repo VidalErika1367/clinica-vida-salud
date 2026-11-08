@@ -1,3 +1,4 @@
+<?php /* Consulta de disponibilidad de turnos por especialidad, médico y fecha (CU11). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS MÉDICAS</span><h1>Consultar disponibilidad</h1><p>Elige una especialidad, un médico y una fecha.</p></div></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <?php if ($user['rol']==='paciente' && !$user['paciente_activo']): ?><div class="alert warning">Puedes consultar los horarios. Tu ficha está inactiva para nuevas reservas; solicita su reactivación en recepción.</div><?php endif; ?>

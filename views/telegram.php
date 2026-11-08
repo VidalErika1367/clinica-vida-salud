@@ -1,3 +1,4 @@
+<?php /* Vinculación de avisos por Telegram del paciente (CU27). */ ?>
 <div class="page-heading"><div><span class="eyebrow">AVISOS PERSONALES</span><h1>Avisos por Telegram</h1><p>Vincula tu chat privado para recibir avisos de la clínica.</p></div></div>
 <?php require BASE_PATH.'/views/_appointment_errors.php'; ?>
 <section class="card form-card">

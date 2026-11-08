@@ -1,3 +1,4 @@
+<?php /* Formulario de ingreso (CU02). */ ?>
 <div class="auth-layout">
     <section class="auth-story">
         <a class="brand" href="/ingresar"><img src="/assets/marca.svg" alt="" width="44" height="44"><span>Vida Salud<small>CLÍNICA</small></span></a>

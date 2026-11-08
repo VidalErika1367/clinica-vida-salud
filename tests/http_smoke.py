@@ -651,6 +651,47 @@ check('Rosa' in medical_access.request('/panel')[1],
 check('Rosa' in admin.request('/medicos?q='+urllib.parse.quote(PREFIX+'-REG'))[1]
       and 'Rosa' in admin.request('/medicos?q=Profesional')[1],
       'Médicos se buscan por registro profesional y apellido')
+# CU08: filtro por especialidad activa, combinado con texto y estado.
+no_specialty_id = int(sql('INSERT INTO medico(registro_profesional,nombres,apellidos,activo) VALUES(?,?,?,true) RETURNING id',
+                          [PREFIX+'-sinesp','Sin','Especialidad'])[0]['id'])
+inactive_link_id = int(sql('INSERT INTO medico(registro_profesional,nombres,apellidos,activo) VALUES(?,?,?,true) RETURNING id',
+                           [PREFIX+'-inactiva','Membresia','Inactiva'])[0]['id'])
+sql('INSERT INTO medico_especialidad(medico_id,especialidad_id,activo) VALUES(?,?,false) RETURNING medico_id',
+    [inactive_link_id,first_specialty])
+REG_ROSA, REG_SIN, REG_INACT = (PREFIX+'-reg').upper(), (PREFIX+'-sinesp').upper(), (PREFIX+'-inactiva').upper()
+by_specialty = admin.request('/medicos?q='+urllib.parse.quote(PREFIX)+'&especialidad='+str(first_specialty))[1]
+check(REG_ROSA in by_specialty and REG_SIN not in by_specialty and REG_INACT not in by_specialty,
+      'Filtro por especialidad solo muestra médicos con esa especialidad activa')
+check(REG_ROSA in admin.request('/medicos?q='+urllib.parse.quote(PREFIX+'-reg')+'&especialidad='+str(first_specialty))[1]
+      and REG_ROSA not in admin.request('/medicos?q='+urllib.parse.quote(PREFIX+'-sinesp')+'&especialidad='+str(first_specialty))[1],
+      'Filtro por especialidad se combina con el texto de búsqueda')
+check(REG_ROSA not in admin.request('/medicos?q='+urllib.parse.quote(PREFIX)+'&especialidad='+str(first_specialty)+'&estado=inactivos')[1]
+      and REG_ROSA in admin.request('/medicos?q='+urllib.parse.quote(PREFIX)+'&especialidad='+str(first_specialty)+'&estado=activos')[1],
+      'Filtro por especialidad se combina con el estado')
+status,body,_ = admin.request('/medicos?especialidad='+urllib.parse.quote('1 OR 1=1'))
+check(status == 200 and 'name="especialidad"' in body,
+      'Valor malformado en especialidad no altera la consulta')
+check(admin.request('/medicos?especialidad='+str(inactive_specialty))[0] == 200
+      and f'value="{inactive_specialty}"' not in body,
+      'El selector muestra solo especialidades activas')
+check(f'value="{first_specialty}"' in admin.request('/medicos')[1] and 'name="especialidad"' not in admin.request('/especialidades')[1],
+      'El selector de especialidad aparece en médicos y no en el catálogo de especialidades')
+check(reception.request('/medicos?especialidad='+str(first_specialty))[0] == 403,
+      'Recepción no usa el filtro de médicos (CU08)')
+# El repositorio exige especialidad activa además de medico_especialidad activa. Se prueba
+# dentro de una transacción que se revierte; la lista blanca de HTTP no permite llegar a este caso.
+repo_code = ('require getcwd()."/bootstrap.php";$s=(int)$argv[1];$out=[];'
+             'try{App\\Database::transaction(function() use ($s,&$out){'
+             '$out["antes"]=array_column(App\\Repositories\\DoctorRepository::search("","todos",$s),"id");'
+             'App\\Database::run("UPDATE especialidad SET activo=false WHERE id=?",[$s]);'
+             '$out["despues"]=array_column(App\\Repositories\\DoctorRepository::search("","todos",$s),"id");'
+             'throw new RuntimeException("revertir");});}catch(RuntimeException $e){}'
+             'echo json_encode($out);')
+repo_run = subprocess.run([PHP,'-r',repo_code,str(first_specialty)],cwd=ROOT,text=True,capture_output=True,check=True)
+repo_result = json.loads(repo_run.stdout)
+check(str(doctor_id) in [str(x) for x in repo_result['antes']] and str(doctor_id) not in [str(x) for x in repo_result['despues']]
+      and sql('SELECT activo FROM especialidad WHERE id=?',[first_specialty])[0]['activo'],
+      'Filtro por especialidad excluye médicos cuando la especialidad está inactiva')
 doctors_before = len(sql('SELECT id FROM medico'))
 invalid_doctor = dict(doctor_data,csrf=admin.token('/medicos/nuevo'),usuario_id='')
 check(doctor_post('/medicos/nuevo',invalid_doctor)[0] == 422

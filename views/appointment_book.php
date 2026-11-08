@@ -1,3 +1,4 @@
+<?php /* Programación de una cita a partir de la disponibilidad (CU12). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS MÉDICAS</span><h1>Programar cita</h1><p>Revisa el turno y guarda tu reserva.</p></div><a class="button quiet" href="/disponibilidad">Consultar otro turno</a></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card form-card"><dl class="account-details patient-details">

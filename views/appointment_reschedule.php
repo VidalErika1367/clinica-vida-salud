@@ -1,3 +1,4 @@
+<?php /* Reprogramación de una cita (CU14). */ ?>
 <div class="page-heading"><div><span class="eyebrow">CITAS MÉDICAS</span><h1>Reprogramar cita</h1><p><?= e(App\AppointmentService::code((int) $appointment['id'])) ?> · <?= e($appointment['paciente']) ?></p></div><a class="button quiet" href="/citas/<?= (int) $appointment['id'] ?>">Volver a la cita</a></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card"><h2>Turno actual</h2><p><?= e(clinic_datetime($appointment['inicio'])) ?> · <?= e($appointment['medico']) ?> · <?= e($appointment['especialidad']) ?></p>

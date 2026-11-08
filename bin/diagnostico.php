@@ -1,5 +1,12 @@
 <?php
 declare(strict_types=1);
+/*
+ * Diagnóstico del entorno: versión de PHP, extensiones, archivo .env, carpeta storage y conexión con PostgreSQL.
+ * Muestra [OK] o [FALTA] por cada punto y termina con código 1 si falta algo.
+ *
+ * Uso: php bin/diagnostico.php
+ * Solo se ejecuta desde la línea de comandos.
+ */
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require dirname(__DIR__) . '/bootstrap.php';
 $errors = 0;

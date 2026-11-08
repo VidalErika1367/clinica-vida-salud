@@ -1,3 +1,4 @@
+<?php /* Advertencias y multas del paciente (CU24) y pantalla de pagos (CU23). */ ?>
 <div class="page-heading"><div><span class="eyebrow">SITUACIÓN ADMINISTRATIVA</span><h1><?= e($title) ?></h1><p>Consulta las incidencias y sus importes, estados y pagos.</p></div></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card"><form class="form-stack" method="get" action="<?= e($paginationPath) ?>">

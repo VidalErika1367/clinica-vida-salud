@@ -1,7 +1,7 @@
 {
-  "regresion": 515,
+  "regresion": 523,
   "nuevas": 93,
-  "passed": 608,
+  "passed": 616,
   "results": [
     {
       "name": "Panel privado exige iniciar sesión",
@@ -296,7 +296,7 @@
       "passed": true
     },
     {
-      "name": "Búsqueda de paciente: prueba_5a737965-CLINICA",
+      "name": "Búsqueda de paciente: prueba_98cadd6d-CLINICA",
       "passed": true
     },
     {
@@ -677,6 +677,38 @@
     },
     {
       "name": "Médicos se buscan por registro profesional y apellido",
+      "passed": true
+    },
+    {
+      "name": "Filtro por especialidad solo muestra médicos con esa especialidad activa",
+      "passed": true
+    },
+    {
+      "name": "Filtro por especialidad se combina con el texto de búsqueda",
+      "passed": true
+    },
+    {
+      "name": "Filtro por especialidad se combina con el estado",
+      "passed": true
+    },
+    {
+      "name": "Valor malformado en especialidad no altera la consulta",
+      "passed": true
+    },
+    {
+      "name": "El selector muestra solo especialidades activas",
+      "passed": true
+    },
+    {
+      "name": "El selector de especialidad aparece en médicos y no en el catálogo de especialidades",
+      "passed": true
+    },
+    {
+      "name": "Recepción no usa el filtro de médicos (CU08)",
+      "passed": true
+    },
+    {
+      "name": "Filtro por especialidad excluye médicos cuando la especialidad está inactiva",
       "passed": true
     },
     {
@@ -1256,7 +1288,7 @@
       "passed": true
     },
     {
-      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-02T19:26'}",
+      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-05T18:22'}",
       "passed": true
     },
     {
@@ -2176,7 +2208,7 @@
       "passed": true
     },
     {
-      "name": "Abre formulario /ausencias/4/citas/92?medico_id=8&fecha=2026-11-12",
+      "name": "Abre formulario /ausencias/4/citas/92?medico_id=10&fecha=2026-11-15",
       "passed": true
     },
     {

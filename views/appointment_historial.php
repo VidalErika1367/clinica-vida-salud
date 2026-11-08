@@ -1,3 +1,4 @@
+<?php /* Historial de citas por paciente (CU19). */ ?>
 <div class="page-heading"><div><span class="eyebrow">REGISTROS CONSERVADOS</span><h1>Historial de citas</h1><p>Consulta las citas del paciente y abre el detalle para revisar sus cambios y motivos.</p></div></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card"><form class="form-stack" method="get" action="/historial">

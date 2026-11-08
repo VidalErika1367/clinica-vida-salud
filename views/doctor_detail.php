@@ -1,3 +1,4 @@
+<?php /* Ficha de un médico con sus próximas citas (CU08). */ ?>
 <div class="page-heading"><div><span class="eyebrow">MÉDICOS</span><h1><?= e($item['nombres'] . ' ' . $item['apellidos']) ?></h1><p><?= e(App\DoctorService::code((int) $item['id'])) ?> · Ficha del médico</p></div><a class="button primary" href="/medicos/<?= (int) $item['id'] ?>/editar">Editar médico</a></div>
 <section class="card"><div class="section-heading"><h2>Datos profesionales y de contacto</h2><span class="badge <?= $item['activo'] ? 'enabled' : 'disabled' ?>"><?= $item['activo'] ? 'Activo' : 'Inactivo' ?></span></div><dl class="account-details patient-details">
 <?php foreach (['registro_profesional'=>'Registro profesional','telefono'=>'Teléfono','correo'=>'Correo'] as $key=>$label): ?><div><dt><?= e($label) ?></dt><dd><?= e($item[$key] ?: 'Sin registrar') ?></dd></div><?php endforeach; ?>

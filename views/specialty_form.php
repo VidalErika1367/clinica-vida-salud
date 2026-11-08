@@ -1,3 +1,4 @@
+<?php /* Formulario de alta o edición de especialidad (CU09). */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1><?= $item ? 'Editar especialidad' : 'Nueva especialidad' ?></h1><p>Define su nombre, descripción y estado.</p></div><a class="button quiet" href="/especialidades">Volver al listado</a></div>
 <section class="card form-card">
 <?php foreach (['general','version'] as $key): ?><?php if (isset($errors[$key])): ?><div class="alert error" role="alert"><?= e($errors[$key]) ?></div><?php endif; ?><?php endforeach; ?>

@@ -2,8 +2,18 @@
 declare(strict_types=1);
 namespace App;
 
+/**
+ * Gestión administrativa de pacientes (CU06), desactivación, reactivación administrativa (CU25)
+ * y listado de reactivaciones. Accesible para administración y recepción según la matriz de permisos.
+ */
 final class PatientController
 {
+    /**
+     * Exige rol administrador o recepcionista con el permiso CU06.
+     *
+     * @return array usuario autenticado
+     * @throws HttpException 403 si no cumple
+     */
     private static function authorize(): array
     {
         return Auth::requireRolePermission('CU06', ['administrador','recepcionista']);
@@ -16,6 +26,11 @@ final class PatientController
         return $data;
     }
 
+    /**
+     * Lista pacientes con búsqueda y filtro de estado (CU06).
+     *
+     * @return void
+     */
     public static function index(): void
     {
         self::authorize();
@@ -26,6 +41,12 @@ final class PatientController
             'patients'=>PatientService::search($query,$state),'query'=>$query,'state'=>$state]);
     }
 
+    /**
+     * Formulario de alta o edición de paciente (CU06).
+     *
+     * @param int|null $id paciente a editar; null para alta
+     * @return void
+     */
     public static function form(?int $id = null): void
     {
         self::authorize();
@@ -35,6 +56,12 @@ final class PatientController
             'version'=>$patient ? PatientService::version($patient) : '']);
     }
 
+    /**
+     * Guarda un paciente (CU06). Si la huella de versión no coincide, vuelve a mostrar los datos actuales.
+     *
+     * @param int|null $id paciente a modificar; null para alta
+     * @return void
+     */
     public static function save(?int $id = null): void
     {
         $user = self::authorize();
@@ -54,6 +81,14 @@ final class PatientController
         }
     }
 
+    /**
+     * Ficha del paciente con su resumen administrativo (CU06).
+     *
+     * @param int $id paciente
+     * @param array $errors errores a mostrar (p. ej. al desactivar sin motivo)
+     * @param string $reason motivo escrito, para no perderlo al mostrar errores
+     * @return void
+     */
     public static function detail(int $id, array $errors = [], string $reason = ''): void
     {
         self::authorize();
@@ -63,6 +98,12 @@ final class PatientController
             'version'=>PatientService::version($patient),'errors'=>$errors,'reason'=>$reason], $errors ? 422 : 200);
     }
 
+    /**
+     * Desactiva un paciente con motivo (CU06). No elimina citas, multas ni la cuenta de acceso.
+     *
+     * @param int $id paciente
+     * @return void
+     */
     public static function deactivate(int $id): void
     {
         $user = self::authorize();
@@ -75,6 +116,11 @@ final class PatientController
             self::detail($id, $e->errors, input('motivo'));
         }
     }
+    /**
+     * Lista pacientes inactivos candidatos a reactivación (CU25).
+     *
+     * @return void
+     */
     public static function reactivationIndex(): void
     {
         $current=Auth::requireUser(); $user=AppointmentService::actor((int) $current['id'],'CU25');
@@ -82,6 +128,14 @@ final class PatientController
         View::render('patient_reactivations',['title'=>'Reactivar pacientes','section'=>'reactivaciones','user'=>$user,
             'query'=>$query,'patients'=>PatientService::search($query,'inactivos')]);
     }
+    /**
+     * Formulario de reactivación con el historial administrativo del paciente (CU25).
+     *
+     * @param int $id paciente
+     * @param array|null $posted datos enviados, para conservarlos al mostrar errores
+     * @param array $errors errores de validación
+     * @return void
+     */
     public static function reactivateForm(int $id, ?array $posted=null, array $errors=[]): void
     {
         $current=Auth::requireUser(); $user=AppointmentService::actor((int) $current['id'],'CU25');
@@ -93,6 +147,13 @@ final class PatientController
             'old'=>isset($errors['version']) ? [] : array_filter($posted ?? [],'is_string'),
             'version'=>$posted===null || isset($errors['version']) ? PatientService::version($patient) : input('version')],$errors ? 422 : 200);
     }
+    /**
+     * Reactiva un paciente tras verificar la identidad y las deudas (CU25).
+     * La reactivación no borra multas: las pendientes siguen vigentes.
+     *
+     * @param int $id paciente
+     * @return void
+     */
     public static function reactivate(int $id): void
     {
         $current=Auth::requireUser(); $user=AppointmentService::actor((int) $current['id'],'CU25');

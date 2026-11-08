@@ -6,10 +6,25 @@ use App\Repositories\AuditRepository;
 use App\Repositories\RoleRepository;
 use App\Repositories\UserRepository;
 
+/**
+ * Matriz de roles y permisos (CU05). Los permisos por rol se guardan en base de datos; la política
+ * (qué puede asignarse y qué es obligatorio) está en config/permisos.php.
+ */
 final class RoleService
 {
+    /**
+     * Política de permisos: disponibles y obligatorios por rol.
+     *
+     * @return array política por rol
+     */
     public static function policy(): array { return require BASE_PATH . '/config/permisos.php'; }
 
+    /**
+     * Huella de la matriz: independiente del orden de las filas. Sirve para detectar cambios concurrentes.
+     *
+     * @param array $matrix permisos por CU y rol
+     * @return string SHA-256 en hexadecimal
+     */
     public static function version(array $matrix): string
     {
         $entries = [];
@@ -22,6 +37,11 @@ final class RoleService
         return hash('sha256', implode("\n", $entries));
     }
 
+    /**
+     * Datos de la pantalla de roles y permisos (CU05).
+     *
+     * @return array datos para la vista
+     */
     public static function viewData(): array
     {
         $matrix = RoleRepository::matrix();
@@ -32,6 +52,15 @@ final class RoleService
         ];
     }
 
+    /**
+     * Valida la selección de permisos contra la política: solo CU disponibles por rol y sin quitar los obligatorios.
+     * Porqué: impide que la matriz guardada permita a un paciente operaciones administrativas.
+     *
+     * @param mixed $selection permisos elegidos por rol
+     * @param mixed $present roles presentes en el formulario
+     * @return array selección normalizada y ordenada por rol
+     * @throws ValidationException si la selección no cumple la política
+     */
     public static function validateSelection(mixed $selection, mixed $present): array
     {
         $policy = self::policy();
@@ -66,6 +95,16 @@ final class RoleService
         return $normalized;
     }
 
+    /**
+     * Guarda la matriz de permisos (CU05) y audita cada permiso que cambió.
+     * Porqué: la huella previa evita sobrescribir cambios hechos en otra ventana; el bloqueo serializa los cambios de permisos.
+     *
+     * @param array $input permisos, roles presentes y huella de la matriz
+     * @param int $actorId administrador que guarda
+     * @return int número de permisos modificados
+     * @throws ValidationException si la matriz no es válida, cambió en otra ventana o no quedaría un administrador
+     * @throws HttpException 403 si el actor no tiene CU05
+     */
     public static function saveMatrix(array $input, int $actorId): int
     {
         $selection = self::validateSelection($input['permisos'] ?? null, $input['roles_presentes'] ?? null);

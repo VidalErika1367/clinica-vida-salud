@@ -1,4 +1,4 @@
-<?php $registration = true; ?>
+<?php /* Registro público de cuenta de paciente (CU01). */$registration = true; ?>
 <section class="register-card">
     <a class="brand" href="/ingresar"><img src="/assets/marca.svg" alt="" width="40" height="40"><span>Vida Salud<small>CLÍNICA</small></span></a>
     <div class="form-intro"><span class="eyebrow">EMPECEMOS</span><h1>Crea tu cuenta de paciente</h1><p>Completa tus datos para contar con un acceso personal.</p></div>

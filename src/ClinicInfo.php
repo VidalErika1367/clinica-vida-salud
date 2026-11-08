@@ -2,8 +2,17 @@
 declare(strict_types=1);
 namespace App;
 
+/**
+ * Datos de ubicación de la clínica para la pantalla de ubicación (ruta /ubicacion, con sesión iniciada).
+ * Los valores vienen de .env; el enlace de mapa solo se acepta si pertenece a un proveedor conocido.
+ */
 final class ClinicInfo
 {
+    /**
+     * Devuelve dirección, ciudad y enlace de mapa validado.
+     *
+     * @return array{address:string,city:string,map:?string} enlace de mapa en null si no es válido
+     */
     public static function location(): array
     {
         $address=trim(Config::get('CLINICA_DIRECCION'));

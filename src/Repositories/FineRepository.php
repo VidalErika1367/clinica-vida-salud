@@ -3,8 +3,18 @@ declare(strict_types=1);
 namespace App\Repositories;
 use App\Database;
 
+/**
+ * Acceso a incumplimientos, multas y pagos (CU23, CU24). Los pagos se registran con sp_registrar_pago.
+ */
 final class FineRepository
 {
+    /**
+     * Busca una multa con su incumplimiento, paciente y pago registrado.
+     *
+     * @param int $id multa
+     * @param bool $lock si es true, bloquea la fila de la multa (FOR UPDATE)
+     * @return array|false multa o false
+     */
     public static function find(int $id, bool $lock=false): array|false
     {
         return Database::run("SELECT mu.*,i.cita_id,i.tipo,c.paciente_id,p.ci,p.activo AS paciente_activo,
@@ -14,6 +24,13 @@ final class FineRepository
             LEFT JOIN pago_multa pm ON pm.multa_id=mu.id WHERE mu.id=?"
             .($lock ? ' FOR UPDATE OF mu' : ''),[$id])->fetch();
     }
+    /**
+     * Resumen de advertencias, multas pendientes y pagadas, y saldo pendiente del paciente.
+     * Porqué: el saldo se devuelve como texto para no perder precisión decimal.
+     *
+     * @param int $patient paciente
+     * @return array contadores y saldo
+     */
     public static function summary(int $patient): array
     {
         return Database::run("SELECT count(*) FILTER(WHERE mu.id IS NULL) AS advertencias,
@@ -23,6 +40,15 @@ final class FineRepository
             FROM incumplimiento i JOIN cita c ON c.id=i.cita_id LEFT JOIN multa mu ON mu.incumplimiento_id=i.id
             WHERE c.paciente_id=?",[$patient])->fetch();
     }
+    /**
+     * Listado de incumplimientos del paciente con su multa, si la hay (50 por página).
+     * Las advertencias son incumplimientos sin multa.
+     *
+     * @param int $patient paciente
+     * @param string $state "todas", "advertencias", "pendientes" o "pagadas"
+     * @param int $page página (desde 1)
+     * @return array items, total y paginación
+     */
     public static function listing(int $patient, string $state, int $page): array
     {
         $where=' WHERE c.paciente_id=?'; $values=[$patient];
@@ -36,6 +62,16 @@ final class FineRepository
             .$joins.$where.' ORDER BY i.id DESC LIMIT 50 OFFSET ?',[...$values,($page-1)*50])->fetchAll();
         return ['items'=>$items,'total'=>$total,'page'=>$page,'pages'=>max(1,(int) ceil($total/50))];
     }
+    /**
+     * Registra el pago de una multa mediante sp_registrar_pago, que aplica las reglas de la base.
+     *
+     * @param int $id multa
+     * @param int $actor usuario que registra
+     * @param string $amount importe con dos decimales
+     * @param string $receipt número de comprobante
+     * @return void
+     * @throws \PDOException si la base rechaza el pago (por ejemplo, comprobante repetido)
+     */
     public static function pay(int $id, int $actor, string $amount, string $receipt): void
     {
         Database::run('CALL sp_registrar_pago(?,?,?::numeric,?)',[$id,$actor,$amount,$receipt]);

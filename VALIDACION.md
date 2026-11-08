@@ -1,10 +1,10 @@
 # Validación CU01–CU30
 
 - Sintaxis: 127 archivos PHP revisados sin errores; incluye la utilidad CLI de comprobación de tareas añadida después de la regresión de la aplicación.
-- Pruebas unitarias: 76 comprobaciones correctas.
-- HTTP y servicios: 660 comprobaciones correctas (336 CU01–CU15, 82 CU16–CU20, 97 CU21–CU25, 93 CU26–CU30, 41 ajustes de sincronización y 11 de navegación móvil).
+- Pruebas unitarias: 87 comprobaciones correctas.
+- HTTP y servicios: 668 comprobaciones correctas (344 CU01–CU15, 82 CU16–CU20, 97 CU21–CU25, 93 CU26–CU30, 41 ajustes de sincronización y 11 de navegación móvil).
 - JavaScript: 19 comprobaciones: 5 del contador, 4 de filtros de reportes y 10 del menú móvil.
-- Total: 755 comprobaciones automatizadas.
+- Total: 774 comprobaciones automatizadas.
 - Resultados: tests/resultados_validacion_menu_movil.json, además de los reportes de regresión anteriores.
 - Actualización 005 a 007 y 006 a 007: preservan cuentas, contraseñas, pacientes y solicitudes previas y se aplican una sola vez. El recorrido 006 a 007 también conserva una ausencia, un vínculo de Telegram y un aviso previos.
 - Las siete migraciones 001–007 conservan sus bytes en estos ajustes; no se modifica el esquema.

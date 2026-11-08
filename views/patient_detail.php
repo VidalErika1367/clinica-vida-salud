@@ -1,3 +1,4 @@
+<?php /* Ficha administrativa del paciente con su resumen (CU06). */ ?>
 <div class="page-heading"><div><span class="eyebrow">PACIENTES</span><h1><?= e($patient['nombres'] . ' ' . $patient['apellidos']) ?></h1><p><?= e(App\PatientService::code((int) $patient['id'])) ?> · Ficha del paciente</p></div><a class="button primary" href="/pacientes/<?= (int) $patient['id'] ?>/editar">Editar paciente</a></div>
 <?php foreach (['general','version'] as $key): ?><?php if (isset($errors[$key])): ?><div class="alert error" role="alert"><?= e($errors[$key]) ?></div><?php endif; ?><?php endforeach; ?>
 <div class="dashboard-grid">

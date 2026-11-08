@@ -1,3 +1,4 @@
+<?php /* Panel principal con accesos y resumen según el rol (sin CU propio). */ ?>
 <div class="page-heading"><div><span class="eyebrow">MI ESPACIO</span><h1>Hola, <?= e($user['nombre']) ?>.</h1><p>Te damos la bienvenida a Clínica Vida Salud.</p></div><span class="pill"><?= e($user['rol_nombre']) ?></span></div>
 <?php if ($user['rol'] === 'paciente' && $user['paciente_id'] && !$user['paciente_activo']): ?>
 <div class="alert warning">Tu registro está inactivo para nuevas reservas. Solicita su reactivación en recepción. Puedes seguir accediendo a tu cuenta.</div>
