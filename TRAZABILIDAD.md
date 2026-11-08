@@ -78,7 +78,7 @@ La confirmación registra la ratificación con origen Paciente y conserva en el 
 
 El documento fija el plazo para cancelación y menciona comprobar el plazo aplicable al reprogramar sin definir una sanción independiente. La implementación informa y registra revisión de reprogramaciones dentro del plazo, conservando el historial, sin inventar una multa adicional. Las sanciones se generan solo en las situaciones definidas por RN15-RN17 y los tratamientos propuestos existentes.
 
-El alta y los cambios de citas generan avisos pendientes en la misma transacción. CU27-CU30 incorporan vinculación, envío y contacto por Telegram; la batería usa transporte simulado. La entrega real local consta en las evidencias manuales de VALIDACION.md; el servidor todavía requiere comprobación.
+El alta y los cambios de citas generan avisos pendientes en la misma transacción. CU27-CU29 incorporan vinculación y envío por Telegram, y CU30 el contacto por WhatsApp; la batería usa transporte simulado. La entrega real local consta en las evidencias manuales de VALIDACION.md; el servidor todavía requiere comprobación.
 
 Las pruebas de citas vencidas e incidencias usan datos históricos ficticios preparados mediante SQL. Las reservas ordinarias y los cambios de CU12-CU15 se ejercitan por HTTP; preparar citas antiguas no acredita por sí solo sus pantallas. Los recorridos manuales posteriores de Windows, incluyendo reserva y cancelación, constan en VALIDACION.md.
 
@@ -105,7 +105,7 @@ Fuente: 2DO PARCIAL_SALUD.docx, páginas físicas 42–44, catálogo de CU25–C
 | CU27 Vincular cuenta con Telegram | TelegramService, TelegramClient, CommunicationController; /telegram; webhook o polling | Consentimiento, enlace aleatorio de un solo uso, caducidad, hash, chat privado, rechazo de reutilización y revocación |
 | CU28 Consultar avisos del sistema | NoticeService, CommunicationController, TaskService; /avisos | Propiedad o ámbito de recepción, asunto/fecha/estado, cita autorizada, error sin alterar agenda y reintento explícito |
 | CU29 Consultar contadores de la cita | CounterService; /citas/{id}/contador; _appointment_counter; app.js | Reloj del servidor, espera/bloque/finalizado, cancelación oculta, actualización de horarios y ningún cambio automático de estado |
-| CU30 Contactar con recepción por Telegram | TelegramService::contact; /contacto-recepcion | Contacto oficial validado, apertura del chat externo y operaciones registradas después en la web |
+| CU30 Contactar con recepción por WhatsApp | ReceptionContact::whatsapp; /contacto-recepcion | Números validados y normalizados, apertura del chat de WhatsApp con mensaje prellenado y operaciones registradas después en la web |
 
 TaskService y bin/procesar_tareas.php ejecutan recordatorios e inactividad periódica usando las reglas existentes. La batería usa transporte simulado. La estudiante confirmó en local la vinculación y recepción de seis avisos el 01/11/2026 y, posteriormente, dos ciclos CLI independientes sin servidor web y sin duplicados en la copia de pruebas. Faltan Telegram y continuidad real del trabajador en internet.
 

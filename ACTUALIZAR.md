@@ -53,11 +53,11 @@ Con recepción abre Ausencias médicas y Registrar ausencia. Selecciona médico,
 
 Abre Avisos del sistema. El paciente solo ve los propios; recepción ve el ámbito de la clínica. Comprueba asunto, fecha, estado y acceso al detalle de la cita. Sin Telegram vinculado permanecen disponibles en la web. Un error de entrega no cancela ni confirma citas. Solo recepción o administración pueden autorizar un reintento después de revisar el envío.
 
-## 7. Configurar Telegram (CU27 y CU30)
+## 7. Configurar Telegram (CU27) y WhatsApp (CU30)
 
-Sigue TELEGRAM.md para crear el bot, agregar sus variables al .env local y configurar el contacto oficial de recepción. Después de verificar el bot inicia `php bin/procesar_tareas.php` en otra terminal del proyecto. Ese proceso recibe las vinculaciones, envía los avisos y ejecuta los recordatorios y la inactividad diaria. Debe permanecer activo durante la prueba.
+Sigue TELEGRAM.md para crear el bot, agregar sus variables al .env local. Para el contacto de recepción (CU30) define CLINICA_RECEPCION_WHATSAPP con hasta 3 contactos "Etiqueta:numero" (código de país, solo dígitos). Después de verificar el bot inicia `php bin/procesar_tareas.php` en otra terminal del proyecto. Ese proceso recibe las vinculaciones, envía los avisos y ejecuta los recordatorios y la inactividad diaria. Debe permanecer activo durante la prueba.
 
-Como paciente abre Avisos por Telegram, autoriza, genera el enlace y pulsa Iniciar en el bot. Vuelve a comprobar la vinculación. Prueba la desactivación. Contactar con recepción debe mostrar el contacto oficial y abrir su chat, sin enviar mensajes automáticamente.
+Como paciente abre Avisos por Telegram, autoriza, genera el enlace y pulsa Iniciar en el bot. Vuelve a comprobar la vinculación. Prueba la desactivación. Contactar con recepción debe mostrar un botón por contacto que abre WhatsApp con un saludo prellenado, sin enviar mensajes automáticamente.
 
 La estudiante ya confirmó la vinculación y entrega de avisos por Telegram en local. La desactivación manual, el contacto desde otra cuenta, los recorridos pendientes y la configuración del servidor todavía requieren revisión. No inicies dos procesos de polling contra el mismo bot.
 

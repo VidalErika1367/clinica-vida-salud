@@ -177,14 +177,22 @@ check('Dato ficticio interno' not in sent['calls'][0]['text'] and 'CM-' in sent[
 check(php('$c=new App\\TelegramClient(static fn($m,$p)=>["ok"=>true,"result"=>["message_id"=>1]]);echo json_encode(App\\TaskService::deliver($c));')=={'enviados':0,'errores':0},
     'CU28: un aviso enviado no vuelve a salir de la cola')
 
-# CU30: contacto oficial estricto, sin mensajes automáticos ni cambios de citas.
-check('Contacto todavía no disponible' in patient.request('/contacto-recepcion')[1],'CU30: indica cuando no hay contacto publicado')
-sql("UPDATE parametro_sistema SET contacto_telegram='https://t.me/RecepcionPrueba' WHERE id=1")
+# CU30: contacto por WhatsApp estricto, sin mensajes automáticos ni cambios de citas.
+# El servidor de pruebas se inicia con CLINICA_RECEPCION_WHATSAPP (tests/ejecutar_todo.ps1) con dos contactos ficticios.
+WA_MSG='Hola%2C%20soy%20paciente%20de%20la%20Cl%C3%ADnica%20Vida%20Salud%20y%20quiero%20hacer%20una%20consulta.'
+def wa_view(value):
+    code=('$contacts=App\\ReceptionContact::whatsapp();ob_start();require getcwd()."/views/whatsapp_contact.php";echo json_encode(ob_get_clean());')
+    return php(code,extra={'CLINICA_RECEPCION_WHATSAPP':value})
+check('Contacto todavía no disponible' in wa_view('sin-numero') and 'Solicita a recepción su número de WhatsApp' in wa_view('1234'),'CU30: indica cuando no hay contacto publicado')
 before=sql('SELECT * FROM cita WHERE paciente_id=? ORDER BY id',[pid]);body=patient.request('/contacto-recepcion')[1]
-check('href="https://t.me/RecepcionPrueba"' in body and 'target="_blank"' in body,'CU30: abre el contacto oficial en Telegram')
+check('href="https://wa.me/59170000001?text='+WA_MSG+'"' in body and 'href="https://wa.me/59170000002?text='+WA_MSG+'"' in body
+      and body.count('target="_blank" rel="noopener noreferrer"')>=2 and 'Recepción Prueba Uno' in body,'CU30: un botón por contacto abre WhatsApp con el mensaje prellenado')
+check('t.me' not in body.split('<main',1)[-1],'CU30: la pantalla ya no usa Telegram')
 check(sql('SELECT * FROM cita WHERE paciente_id=? ORDER BY id',[pid])==before,'CU30: abrir el contacto no envía mensaje ni cambia citas')
-for bad in ['javascript:alert(1)','https://t.me.ejemplo.invalid/RecepcionPrueba','https://t.me/Prueba?start=personal','http://t.me/Prueba']:
-    check(php('echo json_encode(App\\TelegramService::contact());',extra={'TELEGRAM_RECEPCION_USUARIO':bad}) is None,'CU30: rechaza enlaces ajenos o parámetros arbitrarios')
+for bad in ['javascript:alert(1)','https://wa.me/59170000001','59170000001?text=otro','http://wa.me/59170000001','<script>alert(1)</script>:59170000001x','1234567','1234567890123456']:
+    check(php('echo json_encode(App\\ReceptionContact::whatsapp());',extra={'CLINICA_RECEPCION_WHATSAPP':bad})==[],'CU30: rechaza enlaces ajenos, parámetros arbitrarios o números inválidos')
+check([c['url'] for c in php('echo json_encode(App\\ReceptionContact::whatsapp());',extra={'CLINICA_RECEPCION_WHATSAPP':'Sara:+591 7000-0001,B:59170000001'})]==['https://wa.me/59170000001?text='+WA_MSG],
+      'CU30: normaliza el número y no repite contactos')
 # Revocación inmediata de permisos en una sesión ya abierta.
 for permission,browser,path,role in [('CU26',receipt,'/ausencias','recepcionista'),('CU27',patient,'/telegram','paciente'),
     ('CU28',patient,'/avisos','paciente'),('CU29',patient,url,'paciente'),('CU30',patient,'/contacto-recepcion','paciente')]:

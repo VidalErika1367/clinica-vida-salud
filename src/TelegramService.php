@@ -126,17 +126,4 @@ final class TelegramService
             return true;
         });
     }
-    /**
-     * Contacto oficial de recepción en Telegram, tomado de .env o de parámetros del sistema.
-     *
-     * @return string|null enlace https://t.me válido, o null si no hay un usuario válido configurado
-     */
-    public static function contact(): ?string
-    {
-        $value=trim(Config::get('TELEGRAM_RECEPCION_USUARIO'));
-        if ($value==='') { $value=(string) Database::run('SELECT contacto_telegram FROM parametro_sistema WHERE id=1')->fetchColumn(); }
-        if (str_starts_with($value,'https://t.me/')) { $value=substr($value,13); }
-        $value=ltrim($value,'@');
-        return preg_match('/^[A-Za-z][A-Za-z0-9_]{4,31}$/D',$value) ? 'https://t.me/'.$value : null;
-    }
 }

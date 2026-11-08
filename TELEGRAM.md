@@ -11,12 +11,11 @@ Este paquete contiene el código de los 30 casos de uso. La entrega se prueba pr
 APP_URL=http://127.0.0.1:8000
 TELEGRAM_BOT_TOKEN=TOKEN_PRIVADO_DEL_BOT
 TELEGRAM_BOT_USERNAME=NombreExactoDelBot
-TELEGRAM_RECEPCION_USUARIO=UsuarioDeRecepcion
 TELEGRAM_MODO=polling
 TELEGRAM_WEBHOOK_SECRET=
 ```
 
-`TELEGRAM_BOT_USERNAME` es el usuario del bot, sin `@`. El contacto de recepción es una cuenta de atención de la clínica, independiente del bot; usa su usuario público sin `@`. No inventes un contacto ni uses el bot de avisos como si respondiera consultas humanas.
+`TELEGRAM_BOT_USERNAME` es el usuario del bot, sin `@`. Telegram solo se usa para los avisos automáticos (CU27 y CU28). El contacto con recepción (CU30) ya no usa Telegram: se configura con `CLINICA_RECEPCION_WHATSAPP` y abre WhatsApp (véase la sección "Contacto de recepción por WhatsApp" más abajo). No inventes un contacto ni uses el bot de avisos como si respondiera consultas humanas.
 
 3. Ejecuta `php bin/configurar_telegram.php`. Verifica que el token corresponda al nombre del bot y configura la recepción de mensajes. Este comando sí contacta a Telegram.
 4. Mantén el servidor web local abierto. En **otra terminal**, dentro del mismo proyecto, ejecuta:
@@ -39,6 +38,23 @@ Al publicar el proyecto completo, configura las mismas variables en el servidor 
 El modo predeterminado **polling** funciona localmente sin exponer localhost. Para usar webhook, configura `TELEGRAM_MODO=webhook`, `APP_URL` HTTPS y `TELEGRAM_WEBHOOK_SECRET` aleatorio de 32 a 256 caracteres seguros. Ejecuta `php bin/configurar_telegram.php` en el entorno del servidor. El endpoint `/telegram/webhook` acepta únicamente el secreto exacto enviado en `X-Telegram-Bot-Api-Secret-Token`. No usa formularios de sesión. No configures polling y webhook simultáneamente.
 
 El proceso de tareas sigue siendo necesario con webhook para enviar avisos, generar recordatorios y revisar inactividad. Una actualización duplicada no vuelve a vincular ni consume otra vez el código. El offset de polling avanza después de guardar la actualización. No se asocia una cuenta por su teléfono.
+
+## Contacto de recepción por WhatsApp (CU30)
+
+"Contactar con recepción" abre WhatsApp. No envía ningún mensaje por su cuenta: el paciente ve el chat con un saludo ya escrito y decide si lo envía. Los avisos automáticos (CU27 y CU28) siguen por Telegram.
+
+Configura `CLINICA_RECEPCION_WHATSAPP` en `.env` o en las variables del servidor:
+
+```dotenv
+CLINICA_RECEPCION_WHATSAPP=Recepción Sara:59170000001,Recepción Erika:59170000002
+```
+
+- Hasta 3 contactos separados por coma, cada uno como `Etiqueta:numero` (la etiqueta es opcional).
+- El número lleva código de país y se guarda solo con dígitos, entre 8 y 15. Al escribirlo se aceptan `+`, espacios y guiones (`+591 7000-0001`). Los números inválidos se descartan y los repetidos se muestran una sola vez.
+- La etiqueta admite hasta 40 caracteres, sin etiquetas HTML ni caracteres de control, y no puede llevar `:` ni `,`. Si falta o no es válida se muestra "Recepción".
+- Cada botón abre `https://wa.me/NUMERO?text=...` con el mensaje "Hola, soy paciente de la Clínica Vida Salud y quiero hacer una consulta." codificado en la URL.
+- Sin contactos válidos, la pantalla muestra "Contacto todavía no disponible" y pide solicitar el número de WhatsApp a recepción.
+- El valor anterior `TELEGRAM_RECEPCION_USUARIO` y la columna `parametro_sistema.contacto_telegram` ya no se usan para CU30.
 
 ## Comprobación en Render
 

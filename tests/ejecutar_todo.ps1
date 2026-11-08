@@ -54,6 +54,7 @@ $env:APP_URL = "http://127.0.0.1:$port"
 $env:CLINICA_TEST_URL = "http://127.0.0.1:$port"
 $env:TELEGRAM_BOT_TOKEN = '12345678:ficticioNoRealAAAAAAAAAAAAAAAA'
 $env:TELEGRAM_BOT_USERNAME = 'vidasalud_prueba_bot'
+$env:CLINICA_RECEPCION_WHATSAPP = 'Recepción Prueba Uno:59170000001,Recepción Prueba Dos:59170000002'  # CU30
 $env:CLINICA_ADMIN_USER = 'admin_prueba'
 $env:CLINICA_ADMIN_EMAIL = 'admin_prueba@example.test'
 $env:CLINICA_ADMIN_PASSWORD = 'Prueba-' + [guid]::NewGuid().ToString('N') + '!'

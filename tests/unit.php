@@ -126,6 +126,40 @@ $check($ok,'Cambios de cita requieren motivo');
 try { App\AppointmentService::reason(['motivo'=>'<script>'],'motivo',false); $ok=false; } catch (App\ValidationException) { $ok=true; }
 $check($ok,'Motivo con etiquetas rechazado');
 
+$contactEnv = getenv('CLINICA_RECEPCION_WHATSAPP');
+$contactList = function (string $v): array { putenv('CLINICA_RECEPCION_WHATSAPP=' . $v); return App\ReceptionContact::whatsapp(); };
+$msg = rawurlencode('Hola, soy paciente de la Clínica Vida Salud y quiero hacer una consulta.');
+$one = $contactList('59170000001');
+$check(count($one) === 1 && $one[0]['number'] === '59170000001' && $one[0]['label'] === 'Recepción'
+    && $one[0]['url'] === 'https://wa.me/59170000001?text=' . $msg, 'WhatsApp: un número, etiqueta por omisión y mensaje codificado en el enlace');
+$two = $contactList('Recepción Sara:59170000001,Recepción Erika:59170000002');
+$check(count($two) === 2 && $two[0]['label'] === 'Recepción Sara' && $two[1]['label'] === 'Recepción Erika'
+    && $two[1]['url'] === 'https://wa.me/59170000002?text=' . $msg, 'WhatsApp: dos contactos con etiqueta');
+$mixed = $contactList('Recepción Sara:59170000001,Recepción Erika:abc123');
+$check(count($mixed) === 1 && $mixed[0]['number'] === '59170000001', 'WhatsApp: un número inválido se descarta');
+$norm = $contactList('Sara:+591 7000-0001');
+$check(count($norm) === 1 && $norm[0]['number'] === '59170000001', 'WhatsApp: se normaliza +591, espacios y guiones a solo dígitos');
+$html = $contactList('<b>Sara</b>:59170000001');
+$check(count($html) === 1 && $html[0]['label'] === 'Recepción', 'WhatsApp: etiqueta con HTML rechazada, se usa la etiqueta por omisión');
+$check($contactList(str_repeat('a', 41) . ':59170000001')[0]['label'] === 'Recepción'
+    && $contactList("Sara\x07:59170000001")[0]['label'] === 'Recepción'
+    && $contactList(str_repeat('a', 40) . ':59170000001')[0]['label'] === str_repeat('a', 40), 'WhatsApp: etiqueta de más de 40 caracteres o con caracteres de control rechazada');
+$check(count($contactList('A:59170000001,B:59170000002,C:59170000003,D:59170000004')) === 3, 'WhatsApp: máximo 3 contactos');
+$check(count($contactList('A:59170000001,B:+591 70000001,C:591-7000-0001')) === 1, 'WhatsApp: un número repetido se muestra una sola vez');
+$check($contactList('1234567') === [] && count($contactList('12345678')) === 1 && count($contactList('123456789012345')) === 1
+    && $contactList('1234567890123456') === [], 'WhatsApp: longitud válida de 8 a 15 dígitos');
+$safe = true;
+foreach (['javascript:alert(1)', 'https://wa.me/59170000001', 'https://wa.me/59170000001?text=x', '59170000001?text=x', '59170000001/../x', '<script>', '5917000+0001', 'Sara:javascript:alert(1)', '%2B59170000001'] as $badLink) {
+    $safe = $safe && $contactList($badLink) === [];
+}
+$check($safe, 'WhatsApp: enlaces, parámetros o scripts en lugar del número se rechazan');
+$allSafe = true;
+foreach ($contactList('Recepción Sara:+591 7000-0001,Otra:59170000002') as $c) {
+    $allSafe = $allSafe && (bool) preg_match('#^https://wa\.me/[0-9]{8,15}\?text=[A-Za-z0-9%._~-]+$#D', $c['url']);
+}
+$check($allSafe, 'WhatsApp: el enlace es siempre https://wa.me/ con solo dígitos');
+putenv($contactEnv === false ? 'CLINICA_RECEPCION_WHATSAPP' : 'CLINICA_RECEPCION_WHATSAPP=' . $contactEnv);
+
 foreach ($checks as [$ok,$label]) { echo ($ok ? '[OK] ' : '[FALLO] ') . $label . PHP_EOL; }
 echo count($checks) . ' comprobaciones.' . PHP_EOL;
 exit(count(array_filter($checks,fn($x)=>!$x[0])) ? 1 : 0);

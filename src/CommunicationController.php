@@ -86,7 +86,8 @@ final class CommunicationController
         catch (ValidationException $e) { self::notices($e->errors); }
     }
     /**
-     * Muestra el contacto oficial de recepción por Telegram (CU30). No envía mensajes automáticamente.
+     * Muestra los contactos de recepción por WhatsApp (CU30), un botón por persona que abre su chat con un mensaje
+     * prellenado. No envía mensajes automáticamente.
      *
      * @return void
      * @throws HttpException 403 sin permiso CU30
@@ -94,7 +95,7 @@ final class CommunicationController
     public static function contact(): void
     {
         $user=self::actor('CU30');
-        View::render('telegram_contact',['title'=>'Contactar con recepción','section'=>'contacto-recepcion','user'=>$user,'contact'=>TelegramService::contact()]);
+        View::render('whatsapp_contact',['title'=>'Contactar con recepción','section'=>'contacto-recepcion','user'=>$user,'contacts'=>ReceptionContact::whatsapp()]);
     }
     /**
      * Devuelve en JSON los contadores de la cita para actualizar la pantalla (CU29).

@@ -28,7 +28,7 @@ Proyecto en PHP, PostgreSQL, HTML, CSS y JavaScript. Mantiene los cuatro roles d
 
 Si ya instalaste el paquete anterior, sigue ACTUALIZAR.md para actualizar el código conservando tu configuración y tus cuentas. TRAZABILIDAD.md relaciona el código con el Word aportado.
 
-Esta etapa implementa CU01-CU30. CU26–CU30 incluyen ausencias, vinculación de Telegram, avisos con reintento autorizado, contadores y contacto de recepción. TELEGRAM.md explica la configuración del bot y el proceso de recordatorios e inactividad. La estudiante confirmó la vinculación y entrega real de avisos en local; falta comprobar la versión final en Render. La solicitud urgente es gestionada directamente por recepción; no se agrega un rol «Personal médico».
+Esta etapa implementa CU01-CU30. CU26–CU30 incluyen ausencias, vinculación de Telegram, avisos con reintento autorizado, contadores y contacto de recepción por WhatsApp. TELEGRAM.md explica la configuración del bot y el proceso de recordatorios e inactividad. La estudiante confirmó la vinculación y entrega real de avisos en local; falta comprobar la versión final en Render. La solicitud urgente es gestionada directamente por recepción; no se agrega un rol «Personal médico».
 
 ## 1. Revisa tus programas en Windows
 
@@ -232,7 +232,7 @@ Cancelar conserva la cita y libera la hora. Las cancelaciones tardías válidas 
 
 Las reservas creadas con menos anticipación que el plazo se registran para revisión antes de sancionar, según el tratamiento propuesto del documento. Ausencias médicas registradas y causas de la clínica no generan sanción al paciente. Los importes y plazos proceden de los parámetros existentes; no se añaden tarifas externas.
 
-Los cambios de estado y horario generan historial y avisos pendientes en PostgreSQL. La cola de avisos se conserva separada del envío externo. CU27-CU30 incorporan la vinculación y el procesamiento de Telegram, con recepción real comprobada en local y configuración remota pendiente. Las pruebas automatizadas usan transporte simulado. El pago presencial de multas se registra desde CU23 y se consulta en CU24.
+Los cambios de estado y horario generan historial y avisos pendientes en PostgreSQL. La cola de avisos se conserva separada del envío externo. CU27-CU29 incorporan la vinculación y el procesamiento de Telegram, y CU30 el contacto por WhatsApp, con recepción real comprobada en local y configuración remota pendiente. Las pruebas automatizadas usan transporte simulado. El pago presencial de multas se registra desde CU23 y se consulta en CU24.
 
 Si Ana Ejemplo está inactiva, conserva perfil, consultas y solicitudes urgentes, pero requiere reactivación CU25 y no tener deudas para nuevas reservas ordinarias. Recepción o administración pueden verificar y reactivar su ficha desde la interfaz.
 
@@ -273,7 +273,7 @@ Ausencias médicas permite registrar un intervalo y consultar las citas afectada
 
 Avisos por Telegram utiliza autorización del paciente y un código aleatorio temporal de un solo uso, guardado como hash. El webhook exige un secreto propio; el modo polling permite pruebas locales sin túneles. Desactivar o enviar `/stop` revoca los envíos y los códigos pendientes. Avisos del sistema filtra por propietario o ámbito administrativo, muestra fecha, asunto y estado, y permite a recepción autorizar un reintento después de un error.
 
-El contador usa la hora del servidor y el horario guardado, cambia automáticamente de espera a duración del turno y se actualiza tras reprogramaciones. Nunca modifica el estado de una cita. Contactar con recepción abre únicamente el contacto oficial configurado, sin enviar mensajes ni registrar operaciones de citas.
+El contador usa la hora del servidor y el horario guardado, cambia automáticamente de espera a duración del turno y se actualiza tras reprogramaciones. Nunca modifica el estado de una cita. Contactar con recepción (CU30) abre WhatsApp con los números de CLINICA_RECEPCION_WHATSAPP (hasta 3, con etiqueta) y un saludo prellenado, sin enviar mensajes ni registrar operaciones de citas; los avisos automáticos siguen por Telegram.
 
 La migración `007_comunicaciones.sql` conserva las seis anteriores y agrega los registros técnicos de comunicaciones y gestión de ausencias. El actualizador conserva `.env`, Git y la base. También actualiza los archivos de despliegue para iniciar tareas al publicar el proyecto completo. Consulta [TELEGRAM.md](TELEGRAM.md) antes de configurar el servicio real.
 

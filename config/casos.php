@@ -30,5 +30,5 @@ return [
     'CU27' => 'Vincular cuenta con Telegram',
     'CU28' => 'Consultar avisos del sistema',
     'CU29' => 'Consultar contadores de la cita',
-    'CU30' => 'Contactar con recepción por Telegram',
+    'CU30' => 'Contactar con recepción por WhatsApp',
 ];

@@ -1,7 +1,7 @@
 {
-  "regresion": 616,
+  "regresion": 621,
   "nuevas": 41,
-  "passed": 657,
+  "passed": 662,
   "results": [
     {
       "name": "Panel privado exige iniciar sesión",
@@ -296,7 +296,7 @@
       "passed": true
     },
     {
-      "name": "Búsqueda de paciente: prueba_98cadd6d-CLINICA",
+      "name": "Búsqueda de paciente: prueba_776151cc-CLINICA",
       "passed": true
     },
     {
@@ -1288,7 +1288,7 @@
       "passed": true
     },
     {
-      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-05T18:22'}",
+      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-05T23:01'}",
       "passed": true
     },
     {
@@ -2396,7 +2396,11 @@
       "passed": true
     },
     {
-      "name": "CU30: abre el contacto oficial en Telegram",
+      "name": "CU30: un botón por contacto abre WhatsApp con el mensaje prellenado",
+      "passed": true
+    },
+    {
+      "name": "CU30: la pantalla ya no usa Telegram",
       "passed": true
     },
     {
@@ -2404,19 +2408,35 @@
       "passed": true
     },
     {
-      "name": "CU30: rechaza enlaces ajenos o parámetros arbitrarios",
+      "name": "CU30: rechaza enlaces ajenos, parámetros arbitrarios o números inválidos",
       "passed": true
     },
     {
-      "name": "CU30: rechaza enlaces ajenos o parámetros arbitrarios",
+      "name": "CU30: rechaza enlaces ajenos, parámetros arbitrarios o números inválidos",
       "passed": true
     },
     {
-      "name": "CU30: rechaza enlaces ajenos o parámetros arbitrarios",
+      "name": "CU30: rechaza enlaces ajenos, parámetros arbitrarios o números inválidos",
       "passed": true
     },
     {
-      "name": "CU30: rechaza enlaces ajenos o parámetros arbitrarios",
+      "name": "CU30: rechaza enlaces ajenos, parámetros arbitrarios o números inválidos",
+      "passed": true
+    },
+    {
+      "name": "CU30: rechaza enlaces ajenos, parámetros arbitrarios o números inválidos",
+      "passed": true
+    },
+    {
+      "name": "CU30: rechaza enlaces ajenos, parámetros arbitrarios o números inválidos",
+      "passed": true
+    },
+    {
+      "name": "CU30: rechaza enlaces ajenos, parámetros arbitrarios o números inválidos",
+      "passed": true
+    },
+    {
+      "name": "CU30: normaliza el número y no repite contactos",
       "passed": true
     },
     {
