@@ -8,7 +8,8 @@
  *
  * Uso (desde la carpeta del proyecto):
  *   set CONFIRMAR_POBLAR=si
- *   set DEMO_PASSWORD=UnaClaveDeDemo2026   (opcional, mínimo 12 caracteres; crea 3 cuentas de paciente)
+ *   set DEMO_PASSWORD=Demo-Vida-2026   (opcional; debe cumplir la política de contraseñas: de 8 caracteres a 72 bytes,
+ *   con mayúscula, minúscula, número y carácter especial; crea 3 cuentas de paciente)
  *   php bin/poblar_demo.php
  */
 declare(strict_types=1);
@@ -31,7 +32,7 @@ $admin = $roleUser('administrador');
 if (!$admin) { exit("No hay un administrador habilitado.\n"); }
 $recep = $roleUser('recepcionista');
 if (!$recep) {
-    if (strlen($pw) < 12) { exit("No hay recepcionista: define DEMO_PASSWORD para crear la cuenta recepcion.demo.\n"); }
+    if (App\Validation::passwordProblems($pw)) { exit("No hay recepcionista: define en DEMO_PASSWORD una contraseña que cumpla la política (8 a 72 bytes, con mayúscula, minúscula, número y carácter especial) para crear la cuenta recepcion.demo.\n"); }
     $recep = UserService::save(['nombre_usuario' => 'recepcion.demo', 'correo' => 'recepcion.demo@example.com',
         'rol_id' => (string) RoleRepository::byCode('recepcionista')['id'], 'password' => $pw, 'password_confirmation' => $pw, 'habilitado' => '1']);
     $log['cuentas']++;
@@ -99,7 +100,7 @@ foreach ($people as [$ci, $n, $a, $b, $s, $t, $d]) {
 
 // Tres cuentas de paciente para la demostración (CU01), solo si se indicó DEMO_PASSWORD.
 $accounts = [];
-if (strlen($pw) >= 12) {
+if (!App\Validation::passwordProblems($pw)) {
     foreach ([['paciente.demo1', '3214567', 'Ana Paula', 'Roca Justiniano', '62345678'],
               ['paciente.demo2', '3325678', 'Bruno', 'Salvatierra Méndez', '63456789'],
               ['paciente.demo3', '3436789', 'Natalia', 'Vaca Pereira', '64567890']] as [$u, $ci, $n, $a, $t]) {

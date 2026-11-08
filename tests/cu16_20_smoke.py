@@ -23,7 +23,7 @@ baseline_count = len(results)
 admin, admin_id = context['admin'], context['admin_id']
 roles = context['roles']
 prefix = 'bloque2_' + secrets.token_hex(4)
-password = secrets.token_urlsafe(22)
+password = 'Aa1-' + secrets.token_urlsafe(22)  # cumple la política de contraseñas
 
 
 def create_account(role, suffix):

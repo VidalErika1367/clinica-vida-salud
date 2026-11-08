@@ -90,7 +90,7 @@ php bin/instalar.php
 php bin/crear_admin.php
 ```
 
-El segundo comando solicita un usuario, correo y contraseña elegidos por ti. La contraseña debe tener al menos 12 caracteres y un máximo de 72 bytes. No hay cuentas ni contraseñas predeterminadas. Para crear las demás cuentas, ingresa en la web como administrador y abre **Usuarios**. Al seleccionar el rol Paciente, también se solicitan CI, nombres, apellidos y teléfono.
+El segundo comando solicita un usuario, correo y contraseña elegidos por ti. La contraseña nueva debe tener de 8 caracteres a 72 bytes, con al menos una letra mayúscula, una minúscula, un número y un carácter especial (cualquier carácter que no sea letra ni número, como . _ - ! @ # $ % & * ?; el espacio está permitido y las letras con tilde y la ñ cuentan como letras). La misma regla se aplica al registrarse y al crear o cambiar contraseñas en **Usuarios**; las cuentas con contraseñas anteriores siguen pudiendo iniciar sesión. Los formularios muestran una lista de requisitos que se marca mientras escribes. No hay cuentas ni contraseñas predeterminadas. Para crear las demás cuentas, ingresa en la web como administrador y abre **Usuarios**. Al seleccionar el rol Paciente, también se solicitan CI, nombres, apellidos y teléfono.
 
 Ejecutar de nuevo `instalar.php` comprueba las migraciones ya aplicadas. Si hay una migración aplicada que fue modificada, el instalador se detiene para evitar cambios silenciosos.
 

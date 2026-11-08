@@ -33,7 +33,14 @@ ADMIN_USER = os.environ['CLINICA_ADMIN_USER']
 ADMIN_PASS = os.environ['CLINICA_ADMIN_PASSWORD']
 ADMIN_EMAIL = os.environ['CLINICA_ADMIN_EMAIL']
 PREFIX = 'prueba_' + secrets.token_hex(4)
-PASSWORD = secrets.token_urlsafe(20)
+
+
+def strong_password(size=20):
+    """Contraseña aleatoria que siempre cumple la política: mayúscula, minúscula, número y carácter especial."""
+    return 'Aa1-' + secrets.token_urlsafe(size)
+
+
+PASSWORD = strong_password()
 results = []
 
 
@@ -119,6 +126,24 @@ invalid = register_data(PREFIX + '_invalido', PREFIX + '_invalido@example.invali
 invalid['csrf'] = guest.token('/registro'); invalid['password_confirmation'] = 'No coincide con la contraseña'
 invalid_response = guest.request('/registro', invalid)
 check(invalid_response[0] == 422 and PASSWORD not in invalid_response[1], 'Formulario inválido no devuelve la contraseña al navegador')
+# Política de contraseñas: el registro rechaza una contraseña débil y el acceso no la aplica a cuentas antiguas.
+weak_users = []
+for weak_label, weak in [('sin mayúscula ni símbolo', 'abcdefghij1k'), ('de 12 letras sin símbolo ni número', 'soloLetrasabcd'),
+                         ('sin carácter especial', 'Abcdefgh1234'), ('de menos de 8 caracteres', 'Ab1!xyz')]:
+    weak_name = PREFIX + '_debil' + str(len(weak_users)); weak_users.append(weak_name)
+    weak_data = register_data(weak_name, weak_name + '@example.invalid', PREFIX + '-CD' + str(len(weak_users)))
+    weak_data.update(csrf=guest.token('/registro'), password=weak, password_confirmation=weak)
+    weak_response = guest.request('/registro', weak_data)
+    check(weak_response[0] == 422 and 'le falta' in weak_response[1], 'El registro rechaza una contraseña ' + weak_label + ' y explica qué falta')
+check(not sql('SELECT id FROM usuario WHERE nombre_usuario = ANY(?::text[])', ['{' + ','.join(weak_users) + '}']), 'El registro con contraseña débil no crea cuentas')
+old_name = PREFIX + '_antigua'
+old_hash = subprocess.run([PHP, '-r', 'echo password_hash("soloLetrasabcd", PASSWORD_DEFAULT);'], capture_output=True, text=True, check=True).stdout
+sql('INSERT INTO usuario(rol_id,nombre_usuario,correo,password_hash,habilitado) SELECT id,?,?,?,true FROM rol WHERE codigo=?',
+    [old_name, old_name + '@example.invalid', old_hash, 'recepcionista'])
+old_account = Browser()
+check(old_account.login(old_name, 'soloLetrasabcd')[0][0] == 303 and old_account.request('/panel')[0] == 200,
+      'Una cuenta antigua con contraseña de 12 letras sin símbolo sigue pudiendo iniciar sesión')
+check(Browser().login(old_name, 'x' * 73)[0][0] == 422, 'El acceso mantiene el límite de 72 bytes')
 result, _, _ = guest.login("' OR 1=1 --", 'valor de prueba incorrecto')
 check(result[0] == 422, 'Intento de inyección en acceso rechazado')
 patient = Browser()
@@ -258,7 +283,7 @@ check(admin.request(f'/usuarios/{reception_id}/editar', edit_reception)[0] == 30
 reception = Browser()
 check(reception.login(PREFIX + '_recepcionista', PASSWORD)[0][0] == 303,
       'Edición sin nueva contraseña conserva la contraseña anterior')
-new_password = secrets.token_urlsafe(20)
+new_password = strong_password()
 edit_reception.update(csrf=admin.token(f'/usuarios/{reception_id}/editar'), password=new_password, password_confirmation=new_password)
 check(admin.request(f'/usuarios/{reception_id}/editar', edit_reception)[0] == 303,
       'Administrador cambia la contraseña de una cuenta')
@@ -266,6 +291,10 @@ check(reception.request('/panel')[0] == 303, 'Cambio de contraseña revoca las s
 reception = Browser()
 check(reception.login(PREFIX + '_recepcionista', new_password)[0][0] == 303,
       'La nueva contraseña permite iniciar sesión')
+weak_edit = dict(edit_reception, csrf=admin.token(f'/usuarios/{reception_id}/editar'), password='sinrequisitos', password_confirmation='sinrequisitos')
+weak_edit_response = admin.request(f'/usuarios/{reception_id}/editar', weak_edit)
+check(weak_edit_response[0] == 422 and 'le falta' in weak_edit_response[1] and Browser().login(PREFIX + '_recepcionista', new_password)[0][0] == 303,
+      'Administrador no puede asignar una contraseña débil y la anterior se conserva')
 
 # CU06: datos administrativos, permisos e historial conservado.
 check(admin.request('/pacientes')[0] == 200 and reception.request('/pacientes')[0] == 200,

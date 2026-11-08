@@ -57,7 +57,8 @@ $env:TELEGRAM_BOT_USERNAME = 'vidasalud_prueba_bot'
 $env:CLINICA_RECEPCION_WHATSAPP = 'Recepción Prueba Uno:59170000001,Recepción Prueba Dos:59170000002'  # CU30
 $env:CLINICA_ADMIN_USER = 'admin_prueba'
 $env:CLINICA_ADMIN_EMAIL = 'admin_prueba@example.test'
-$env:CLINICA_ADMIN_PASSWORD = 'Prueba-' + [guid]::NewGuid().ToString('N') + '!'
+# Cumple la política de contraseñas: mayúscula, minúscula, número y carácter especial.
+$env:CLINICA_ADMIN_PASSWORD = 'Prueba-1' + [guid]::NewGuid().ToString('N') + '!'
 
 if ($testDb -notlike '*_test') { throw 'La base de pruebas debe terminar en _test.' }
 if (Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) {
@@ -115,9 +116,12 @@ try {
         Reset-Database
         Start-TestServer
         if ($b.SetReport) { $env:CLINICA_TEST_REPORT = "$root\$($b.Report)" } else { Remove-Item Env:CLINICA_TEST_REPORT -ErrorAction SilentlyContinue }
+        # Python escribe los errores en stderr: con 'Stop' abortaría el script antes de mostrarlos.
+        $ErrorActionPreference = 'Continue'
         $log = & $python $b.File 2>&1 | ForEach-Object { "$_" }
         $code = $LASTEXITCODE
-        $log | Select-Object -Last 15 | ForEach-Object { Write-Host $_ }
+        $ErrorActionPreference = 'Stop'
+        $log | Select-Object -Last 25 | ForEach-Object { Write-Host $_ }
         $passed = 0
         if (Test-Path "$root\$($b.Report)") {
             $passed = (Get-Content "$root\$($b.Report)" -Raw -Encoding UTF8 | ConvertFrom-Json).passed
@@ -137,7 +141,7 @@ $unit | Select-Object -Last 3 | ForEach-Object { Write-Host $_ }
 $summary += [pscustomobject]@{ Bateria = 'unit.php'; Comprobaciones = ($unit | Select-Object -Last 1); Estado = $(if ($unitCode -eq 0) { 'OK' } else { "FALLO ($unitCode)" }) }
 if ($unitCode -ne 0) { $failed = $true }
 
-foreach ($mjs in 'counter_browser', 'report_filters_browser', 'mobile_menu_browser') {
+foreach ($mjs in 'counter_browser', 'report_filters_browser', 'mobile_menu_browser', 'password_checklist_browser') {
     Write-Host "=== $mjs.mjs ===" -ForegroundColor Cyan
     $out = & $node "tests\$mjs.mjs" 2>&1 | ForEach-Object { "$_" }
     $code = $LASTEXITCODE

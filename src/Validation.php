@@ -84,7 +84,33 @@ final class Validation
         return preg_match('/^\+?[0-9 ()-]{7,30}$/', $phone) === 1 && strlen($digits) >= 7 && strlen($digits) <= 15;
     }
     /**
-     * Valida una cuenta de usuario. La contraseña debe tener entre 12 y 72 bytes; el límite evita truncamientos.
+     * Política de contraseñas nuevas: de 8 caracteres a 72 bytes, con al menos una mayúscula, una minúscula,
+     * un número y un carácter especial (cualquier carácter que no sea letra ni número; el espacio cuenta y
+     * está permitido). Las letras con tilde y la ñ cuentan como letras. El máximo de 72 bytes evita que bcrypt
+     * trunque la contraseña. Solo se usa al crear o cambiar contraseñas, nunca al iniciar sesión.
+     *
+     * @param string $password contraseña en claro, tal como la escribió la persona
+     * @return list<string> mensajes que explican qué falta; lista vacía si la contraseña cumple la política
+     */
+    public static function passwordProblems(string $password): array
+    {
+        if ($password === '' || str_contains($password, "\0") || !mb_check_encoding($password, 'UTF-8')) {
+            return ['La contraseña no es válida: usa solo texto, sin caracteres de control.'];
+        }
+        if (strlen($password) > 72) {
+            return ['La contraseña no puede superar 72 bytes (las letras con tilde y la ñ ocupan 2 bytes). Acórtala.'];
+        }
+        $missing = [];
+        if (mb_strlen($password) < 8) { $missing[] = 'al menos 8 caracteres'; }
+        if (!preg_match('/\p{Lu}/u', $password)) { $missing[] = 'una letra mayúscula'; }
+        if (!preg_match('/\p{Ll}/u', $password)) { $missing[] = 'una letra minúscula'; }
+        if (!preg_match('/[0-9]/', $password)) { $missing[] = 'un número'; }
+        if (!preg_match('/[^\p{L}\p{N}]/u', $password)) { $missing[] = 'un carácter especial (por ejemplo . _ - ! @ # $ % & * ?)'; }
+        return $missing ? ['A la contraseña le falta: ' . implode(', ', $missing) . '.'] : [];
+    }
+    /**
+     * Valida una cuenta de usuario. Al crear o cambiar la contraseña se aplica la política de passwordProblems();
+     * el inicio de sesión no la aplica, para que las cuentas con contraseñas anteriores puedan seguir entrando.
      *
      * @param array $data datos de la cuenta
      * @param bool $passwordRequired si es false, una contraseña vacía significa "no cambiar"
@@ -101,9 +127,8 @@ final class Validation
         }
         $password = $data['password'] ?? '';
         if ($passwordRequired || $password !== '') {
-            if (str_contains($password, "\0") || mb_strlen($password) < 12 || strlen($password) > 72) {
-                $errors['password'] = 'Usa al menos 12 caracteres y como máximo 72 bytes. Puedes escribir una frase.';
-            }
+            $problems = self::passwordProblems($password);
+            if ($problems) { $errors['password'] = $problems[0]; }
             if ($password !== ($data['password_confirmation'] ?? '')) { $errors['password_confirmation'] = 'Las contraseñas no coinciden.'; }
         }
         return $errors;

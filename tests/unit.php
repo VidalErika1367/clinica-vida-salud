@@ -160,6 +160,28 @@ foreach ($contactList('Recepción Sara:+591 7000-0001,Otra:59170000002') as $c) 
 $check($allSafe, 'WhatsApp: el enlace es siempre https://wa.me/ con solo dígitos');
 putenv($contactEnv === false ? 'CLINICA_RECEPCION_WHATSAPP' : 'CLINICA_RECEPCION_WHATSAPP=' . $contactEnv);
 
+// Política de contraseñas nuevas: 8 caracteres a 72 bytes con mayúscula, minúscula, número y carácter especial.
+$pwCase = function (string $password) use ($account): array { $x = $account; $x['password'] = $x['password_confirmation'] = $password; return App\Validation::account($x); };
+$check($pwCase('Abcdef1!') === [], 'Contraseña: cumple todos los requisitos');
+$check(isset($pwCase('abcdef1!')['password']) && str_contains($pwCase('abcdef1!')['password'], 'mayúscula'), 'Contraseña: sin mayúscula rechazada y el mensaje la nombra');
+$check(isset($pwCase('ABCDEF1!')['password']) && str_contains($pwCase('ABCDEF1!')['password'], 'minúscula'), 'Contraseña: sin minúscula rechazada y el mensaje la nombra');
+$check(isset($pwCase('Abcdefg!')['password']) && str_contains($pwCase('Abcdefg!')['password'], 'número'), 'Contraseña: sin número rechazada y el mensaje lo nombra');
+$check(isset($pwCase('Abcdef12')['password']) && str_contains($pwCase('Abcdef12')['password'], 'carácter especial'), 'Contraseña: sin carácter especial rechazada y el mensaje lo nombra');
+$check(isset($pwCase('Ab1!xyz')['password']) && str_contains($pwCase('Ab1!xyz')['password'], '8 caracteres'), 'Contraseña: con menos de 8 caracteres rechazada y el mensaje lo nombra');
+$check($pwCase('Ab1!xyzw') === [], 'Contraseña: exactamente 8 caracteres aceptada');
+$check($pwCase('Aa1!' . str_repeat('x', 68)) === [] && isset($pwCase('Aa1!' . str_repeat('x', 69))['password']), 'Contraseña: 72 bytes aceptada y 73 bytes rechazada');
+$check(isset($pwCase('Aa1!' . str_repeat('ñ', 35))['password']) && str_contains($pwCase('Aa1!' . str_repeat('ñ', 35))['password'], '72 bytes'), 'Contraseña: el límite cuenta bytes y no caracteres');
+$check($pwCase('Contraseña con ñandú 1') === [], 'Contraseña: tildes, ñ y espacios aceptados');
+$check($pwCase('ÁÉÍÓÚ ñandú 7') === [] && isset($pwCase('ÁÉÍÓÚÑÑÑ1!')['password']), 'Contraseña: las letras con tilde cuentan como letras y no como carácter especial');
+$check($pwCase('Aa1 aaaa') === [], 'Contraseña: el espacio cuenta como carácter especial permitido');
+$check(isset($pwCase("Abcdef1!\0")['password']) && isset($pwCase("Abcdef1!\xFF")['password']), 'Contraseña: bytes nulos o UTF-8 inválido rechazados');
+$check(isset($pwCase('soloLetrasabcd')['password']), 'Contraseña antigua de 12 letras sin símbolo ya no se acepta al crear o cambiar');
+$optional = $account; $optional['password'] = $optional['password_confirmation'] = '';
+$check(App\Validation::account($optional, false) === [], 'Edición sin contraseña nueva sigue permitida');
+$optional['password'] = $optional['password_confirmation'] = 'sinrequisitos';
+$check(isset(App\Validation::account($optional, false)['password']), 'Edición con una contraseña nueva débil rechazada');
+$check(App\Validation::passwordProblems('Abcdef1!') === [] && count(App\Validation::passwordProblems('abc')) === 1, 'passwordProblems devuelve un mensaje que indica qué falta');
+
 foreach ($checks as [$ok,$label]) { echo ($ok ? '[OK] ' : '[FALLO] ') . $label . PHP_EOL; }
 echo count($checks) . ' comprobaciones.' . PHP_EOL;
 exit(count(array_filter($checks,fn($x)=>!$x[0])) ? 1 : 0);

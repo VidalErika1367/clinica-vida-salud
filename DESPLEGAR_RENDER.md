@@ -34,7 +34,7 @@ git push
 | --- | --- |
 | `CLINICA_ADMIN_USER` | El nombre de usuario que quieres para el administrador en internet. |
 | `CLINICA_ADMIN_EMAIL` | El correo del administrador. |
-| `CLINICA_ADMIN_PASSWORD` | Una contraseña de 12 a 72 bytes. |
+| `CLINICA_ADMIN_PASSWORD` | Una contraseña de 8 caracteres a 72 bytes, con mayúscula, minúscula, número y carácter especial. |
 
 5. Aplica el Blueprint. Si el resumen muestra un plan de pago, corrige el plan antes de crear los recursos. Esta configuración no requiere un plan de pago.
 6. Espera a que la base esté disponible y el servicio termine su primer despliegue. El primer arranque crea las tablas y el administrador. Si falla la conexión o la instalación, Apache no arranca: revisa los mensajes del despliegue antes de reintentarlo.

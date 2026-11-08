@@ -9,10 +9,11 @@
         <div class="form-grid">
             <label>Nombre de usuario<input name="nombre_usuario" autocomplete="username" minlength="3" maxlength="60" pattern="[a-zA-Z0-9_.-]{3,60}" value="<?= old($old,'nombre_usuario') ?>" required><?= field_error($errors,'nombre_usuario') ?></label>
             <label>Correo electrónico<input type="email" name="correo" autocomplete="email" maxlength="160" value="<?= old($old,'correo') ?>" required><?= field_error($errors,'correo') ?></label>
-            <label>Contraseña<input type="password" name="password" autocomplete="new-password" minlength="12" required aria-describedby="password-help"><?= field_error($errors,'password') ?></label>
-            <label>Repite la contraseña<input type="password" name="password_confirmation" autocomplete="new-password" minlength="12" required><?= field_error($errors,'password_confirmation') ?></label>
+            <label>Contraseña<input type="password" name="password" autocomplete="new-password" minlength="8" required aria-describedby="password-help"><?= field_error($errors,'password') ?></label>
+            <label>Repite la contraseña<input type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required><?= field_error($errors,'password_confirmation') ?></label>
         </div>
-        <p class="field-help" id="password-help">Usa una frase de al menos 12 caracteres. No compartas tu contraseña.</p>
+        <p class="field-help" id="password-help">Crea una contraseña que cumpla los requisitos de abajo. No compartas tu contraseña.</p>
+        <?php $passwordOptional = false; require BASE_PATH . '/views/_password_rules.php'; ?>
         <button class="button primary full" type="submit">Crear mi cuenta</button>
     </form>
     <p class="form-bottom">¿Ya tienes cuenta? <a href="/ingresar">Inicia sesión</a></p>

@@ -51,6 +51,60 @@ document.querySelectorAll('[data-password-target]').forEach(button => {
         button.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
     });
 });
+// Requisitos de contraseña en vivo (CU01 y CU04): marca cada requisito mientras se escribe y comprueba la confirmación.
+// Es solo una ayuda: la regla real la aplica el servidor (Validation::passwordProblems). Si el campo es opcional
+// (edición de usuario) y está vacío, no se valida nada.
+const passwordRules = {
+    length: value => Array.from(value).length >= 8,
+    upper: value => /\p{Lu}/u.test(value),
+    lower: value => /\p{Ll}/u.test(value),
+    number: value => /[0-9]/.test(value),
+    special: value => /[^\p{L}\p{N}]/u.test(value)
+};
+// Cuenta los bytes UTF-8 de la contraseña (el servidor admite hasta 72).
+const utf8Length = value => Array.from(value).reduce((total, char) => {
+    const code = char.codePointAt(0);
+    return total + (code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4);
+}, 0);
+document.querySelectorAll('[data-password-rules]').forEach(box => {
+    const form = box.closest('form');
+    const password = form && form.querySelector('[name="password"]');
+    const confirmation = form && form.querySelector('[name="password_confirmation"]');
+    if (!password || !confirmation) return;
+    const optional = box.hasAttribute('data-optional');
+    const limit = box.querySelector('[data-rule-limit]');
+    const match = box.querySelector('[data-password-match]');
+    // Pone un elemento en estado cumplido (✓), pendiente (✗) o neutro (○); el estado también se dice con texto.
+    const mark = (element, met, neutral) => {
+        const symbol = element.querySelector('.rule-mark');
+        const state = element.querySelector('[data-rule-state]');
+        if (symbol) symbol.textContent = neutral ? '○' : met ? '✓' : '✗';
+        if (state) state.textContent = neutral ? '' : met ? ' (cumplido)' : ' (pendiente)';
+        element.classList.toggle('is-met', !neutral && met);
+        element.classList.toggle('is-pending', !neutral && !met);
+    };
+    const refresh = () => {
+        const value = password.value;
+        const neutral = optional && value === '' && confirmation.value === '';
+        box.querySelectorAll('[data-rule]').forEach(item => mark(item, passwordRules[item.dataset.rule](value), neutral));
+        if (limit) limit.hidden = utf8Length(value) <= 72;
+        if (neutral || (value === '' && confirmation.value === '')) {
+            match.textContent = '';
+            match.classList.remove('is-met', 'is-pending');
+        } else if (confirmation.value === '') {
+            match.textContent = 'Repite la contraseña para confirmarla.';
+            match.classList.remove('is-met', 'is-pending');
+        } else {
+            const same = value === confirmation.value;
+            match.textContent = same ? '✓ Las contraseñas coinciden.' : '✗ Las contraseñas no coinciden.';
+            match.classList.toggle('is-met', same);
+            match.classList.toggle('is-pending', !same);
+        }
+    };
+    password.addEventListener('input', refresh);
+    confirmation.addEventListener('input', refresh);
+    refresh();
+});
 // Formulario de usuario (CU04): muestra y exige los datos de paciente solo si el rol elegido es paciente.
 const roleSelect = document.getElementById('rol');
 const patientFields = document.getElementById('patient-fields');

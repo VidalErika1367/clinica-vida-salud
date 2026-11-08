@@ -38,3 +38,12 @@ textarea{font:inherit;display:block;width:100%;max-width:100%;min-height:100px;b
     .sidebar #main-navigation{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;margin-top:14px;max-height:65vh;max-height:65dvh;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--line);padding-top:12px}
     .sidebar #main-navigation a{display:flex;align-items:center;min-height:44px;font-size:14px;padding:10px 12px}
 }
+.password-rules{margin:4px 0 18px;padding:12px 14px;background:var(--mint);border:1px solid var(--line);border-radius:12px;font-size:13px}
+.password-rules-title{margin:0 0 6px;font-weight:600;color:var(--ink)}
+.password-rules-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.password-rules-list li,.password-match{color:var(--muted)}
+.password-rules .rule-mark{display:inline-block;width:1.2em;font-weight:700;text-align:center}
+.password-rules .is-met{color:#0b6b36;font-weight:600}
+.password-rules .is-pending{color:#6a4b00}
+.password-rules-limit{margin:8px 0 0;color:#8a1c1c;font-weight:600}
+.password-match{margin:8px 0 0;min-height:1.2em}
