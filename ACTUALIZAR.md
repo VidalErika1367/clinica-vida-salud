@@ -27,7 +27,7 @@ cd "$env:USERPROFILE\Downloads\Clinica_Vida_Salud_Base_Inicial\clinica-vida-salu
 php bin/instalar.php
 ```
 
-Si ya instalaste CU01–CU30, no habrá migraciones nuevas: 001–007 conservan sus bytes. Usa las mismas cuentas; no necesitas crear otro administrador.
+Si ya instalaste CU01–CU30, esta versión agrega una sola migración, 008_restablecer.sql (la columna usuario.debe_cambiar_password del restablecimiento de contraseña); 001–007 conservan sus bytes y 008 se aplica sola al iniciar el servidor o con php bin/instalar.php. Usa las mismas cuentas; no necesitas crear otro administrador.
 
 ```powershell
 php -S 127.0.0.1:8000 -t public router.php

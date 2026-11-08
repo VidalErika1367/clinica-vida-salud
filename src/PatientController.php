@@ -87,15 +87,17 @@ final class PatientController
      * @param int $id paciente
      * @param array $errors errores a mostrar (p. ej. al desactivar sin motivo)
      * @param string $reason motivo escrito, para no perderlo al mostrar errores
+     * @param array $resetErrors errores del formulario de restablecimiento de contraseña
      * @return void
      */
-    public static function detail(int $id, array $errors = [], string $reason = ''): void
+    public static function detail(int $id, array $errors = [], string $reason = '', array $resetErrors = []): void
     {
         self::authorize();
         $patient = PatientService::find($id);
         View::render('patient_detail', ['title'=>'Ficha del paciente','section'=>'pacientes',
             'patient'=>$patient,'summary'=>PatientService::summary($id),
-            'version'=>PatientService::version($patient),'errors'=>$errors,'reason'=>$reason], $errors ? 422 : 200);
+            'version'=>PatientService::version($patient),'errors'=>$errors,'reason'=>$reason,
+            'resetErrors'=>$resetErrors], ($errors || $resetErrors) ? 422 : 200);
     }
 
     /**
@@ -162,5 +164,31 @@ final class PatientController
             Session::flash('El paciente quedó Activo. Su cuenta, citas e incidencias se conservaron; las multas pendientes siguen vigentes.');
             redirect('/pacientes/'.$id.'/reactivar');
         } catch (ValidationException $e) { self::reactivateForm($id,$_POST,$e->errors); }
+    }
+
+    /**
+     * Restablece la contraseña de la cuenta del paciente con una contraseña temporal (amplía CU06).
+     * Exige la casilla de verificación de identidad. Recepción solo puede restablecer cuentas con rol paciente;
+     * cualquier otra cuenta enlazada responde 403.
+     *
+     * @param int $id paciente
+     * @return void
+     * @throws HttpException 403 si la cuenta enlazada no es de un paciente y quien restablece es recepción
+     */
+    public static function resetPassword(int $id): void
+    {
+        $user = self::authorize();
+        $patient = PatientService::find($id);
+        if (!$patient['usuario_id']) {
+            self::detail($id, ['general' => 'Este paciente no tiene una cuenta de acceso vinculada.']); return;
+        }
+        try {
+            UserService::restablecer((int) $patient['usuario_id'], ['password' => raw_password(),
+                'password_confirmation' => raw_password('password_confirmation'), 'verificado' => input('verificado')], $user, true);
+            Session::flash('Contraseña temporal guardada. El paciente deberá cambiarla al ingresar y sus sesiones abiertas se cerraron.');
+            redirect('/pacientes/' . $id);
+        } catch (ValidationException $e) {
+            self::detail($id, [], '', $e->errors);
+        }
     }
 }

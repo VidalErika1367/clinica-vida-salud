@@ -190,6 +190,32 @@ $check(App\UserService::roleFilter('superusuario', $roleList) === null && App\Us
 $check(App\UserService::roleFilter("paciente' OR '1'='1", $roleList) === null && App\UserService::roleFilter('1', $roleList) === null && App\UserService::roleFilter('paciente;--', $roleList) === null, 'Filtro de rol: intento de inyección se ignora');
 $check(App\UserService::roleFilter(['paciente'], $roleList) === null && App\UserService::roleFilter(1, $roleList) === null, 'Filtro de rol: un arreglo o un número se ignoran');
 
+// Restablecer contraseña con apoyo de recepción: política de roles, temporal válida y cambio obligatorio.
+$check(App\UserService::canReset('recepcionista', 'paciente') && !App\UserService::canReset('recepcionista', 'medico')
+    && !App\UserService::canReset('recepcionista', 'recepcionista') && !App\UserService::canReset('recepcionista', 'administrador'), 'Restablecer: recepción solo puede restablecer cuentas de pacientes');
+$check(App\UserService::canReset('administrador', 'paciente') && App\UserService::canReset('administrador', 'medico')
+    && App\UserService::canReset('administrador', 'recepcionista') && App\UserService::canReset('administrador', 'administrador'), 'Restablecer: el administrador puede restablecer cualquier cuenta');
+$check(!App\UserService::canReset('paciente', 'paciente') && !App\UserService::canReset('medico', 'paciente') && !App\UserService::canReset('', 'paciente'), 'Restablecer: pacientes y médicos no restablecen contraseñas');
+$resetOk = ['password' => 'Temporal-2026!', 'password_confirmation' => 'Temporal-2026!', 'verificado' => '1'];
+$check(App\UserService::resetErrors($resetOk, true) === [], 'Restablecer: temporal válida con la verificación marcada');
+$noVerified = $resetOk; unset($noVerified['verificado']);
+$check(isset(App\UserService::resetErrors($noVerified, true)['verificado']) && App\UserService::resetErrors($noVerified, false) === [], 'Restablecer: la verificación de identidad es obligatoria solo cuando se exige');
+$check(isset(App\UserService::resetErrors(['password' => 'sinrequisitos', 'password_confirmation' => 'sinrequisitos', 'verificado' => '1'], true)['password']), 'Restablecer: la temporal debe cumplir la política de contraseñas');
+$check(isset(App\UserService::resetErrors(['password' => 'Temporal-2026!', 'password_confirmation' => 'Otra-2026!', 'verificado' => '1'], true)['password_confirmation']), 'Restablecer: la confirmación debe coincidir');
+$tempHash = password_hash('Temporal-2026!', PASSWORD_DEFAULT);
+$check(isset(App\UserService::changeErrors('Temporal-2026!', 'Temporal-2026!', $tempHash)['password']), 'Cambio obligatorio: la contraseña nueva no puede ser igual a la temporal');
+$check(App\UserService::changeErrors('Nueva-Clave-2026', 'Nueva-Clave-2026', $tempHash) === [], 'Cambio obligatorio: una contraseña distinta y válida se acepta');
+$check(isset(App\UserService::changeErrors('debil', 'debil', $tempHash)['password']) && isset(App\UserService::changeErrors('Nueva-Clave-2026', 'Otra', $tempHash)['password_confirmation']), 'Cambio obligatorio: aplica la política y exige la confirmación');
+$forgotUrl = App\ReceptionContact::FORGOT_MESSAGE;
+$check($forgotUrl === 'Hola, olvidé mi contraseña de la Clínica Vida Salud. Mi CI es: ', 'Olvidé mi contraseña: el mensaje prellenado termina en espacio para escribir el CI');
+putenv('CLINICA_RECEPCION_WHATSAPP=Recepción Sara:59170000001');
+$forgot = App\ReceptionContact::whatsapp(App\ReceptionContact::FORGOT_MESSAGE);
+$check(count($forgot) === 1 && $forgot[0]['url'] === 'https://wa.me/59170000001?text=' . rawurlencode('Hola, olvidé mi contraseña de la Clínica Vida Salud. Mi CI es: ')
+    && str_ends_with($forgot[0]['url'], '%3A%20') , 'Olvidé mi contraseña: el enlace de WhatsApp lleva el mensaje codificado en la URL');
+putenv('CLINICA_RECEPCION_WHATSAPP=sin-numero');
+$check(App\ReceptionContact::whatsapp(App\ReceptionContact::FORGOT_MESSAGE) === [], 'Olvidé mi contraseña: sin contactos configurados no hay botones');
+putenv($contactEnv === false ? 'CLINICA_RECEPCION_WHATSAPP' : 'CLINICA_RECEPCION_WHATSAPP=' . $contactEnv);
+
 foreach ($checks as [$ok,$label]) { echo ($ok ? '[OK] ' : '[FALLO] ') . $label . PHP_EOL; }
 echo count($checks) . ' comprobaciones.' . PHP_EOL;
 exit(count(array_filter($checks,fn($x)=>!$x[0])) ? 1 : 0);

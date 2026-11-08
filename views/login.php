@@ -14,6 +14,7 @@
             <label>Contraseña<span class="password-input"><input id="password" type="password" name="password" autocomplete="current-password" maxlength="72" required><button type="button" class="toggle-password" data-password-target="password" aria-label="Mostrar contraseña">Ver</button></span></label>
             <button class="button primary full" type="submit">Ingresar <span aria-hidden="true">→</span></button>
         </form>
+        <p class="form-bottom"><a href="/olvide-password">¿Olvidaste tu contraseña?</a></p>
         <p class="form-bottom">¿Es tu primera vez? <a href="/registro">Crea tu cuenta de paciente</a></p>
         <div class="help-note">Si ya tienes un registro en la clínica y no puedes ingresar, consulta en recepción.</div>
     </section>

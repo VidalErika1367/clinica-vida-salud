@@ -130,4 +130,109 @@ final class UserService
             throw $e;
         }
     }
+
+    /**
+     * Política de restablecimiento: el administrador restablece cualquier cuenta; recepción, solo cuentas de pacientes.
+     *
+     * @param string $actorRole código del rol de quien restablece
+     * @param string $targetRole código del rol de la cuenta
+     * @return bool true si puede restablecerla
+     */
+    public static function canReset(string $actorRole, string $targetRole): bool
+    {
+        return $actorRole === 'administrador' || ($actorRole === 'recepcionista' && $targetRole === 'paciente');
+    }
+    /**
+     * Valida los datos del restablecimiento: contraseña temporal que cumpla la política, su confirmación y,
+     * cuando se pide, la casilla de verificación de identidad.
+     *
+     * @param array $data password, password_confirmation y verificado ("1" si se marcó la casilla)
+     * @param bool $requireVerification true si la casilla de verificación de identidad es obligatoria
+     * @return array<string,string> errores por campo
+     */
+    public static function resetErrors(array $data, bool $requireVerification): array
+    {
+        $errors = [];
+        if ($requireVerification && ($data['verificado'] ?? '') !== '1') {
+            $errors['verificado'] = 'Confirma que verificaste la identidad del paciente (CI y datos de contacto).';
+        }
+        $password = (string) ($data['password'] ?? '');
+        $problems = Validation::passwordProblems($password);
+        if ($problems) { $errors['password'] = $problems[0]; }
+        if ($password !== (string) ($data['password_confirmation'] ?? '')) { $errors['password_confirmation'] = 'Las contraseñas no coinciden.'; }
+        return $errors;
+    }
+    /**
+     * Restablece la contraseña de una cuenta con una contraseña temporal (amplía CU04 y CU06).
+     * Guarda solo el hash, marca que debe cambiarla, invalida las sesiones abiertas de esa cuenta (cambia el hash)
+     * y registra en auditoría al responsable, sin la contraseña.
+     *
+     * @param int $targetId cuenta a restablecer
+     * @param array $data password, password_confirmation y verificado
+     * @param array $actor usuario autenticado que restablece (id y rol)
+     * @param bool $requireVerification true si debe marcarse la verificación de identidad
+     * @return void
+     * @throws HttpException 403 si el rol del responsable no puede restablecer esa cuenta; 404 si no existe
+     * @throws ValidationException si la temporal no cumple la política, no coincide o falta la verificación
+     */
+    public static function restablecer(int $targetId, array $data, array $actor, bool $requireVerification): void
+    {
+        $target = self::find($targetId);
+        $targetRole = (string) RoleRepository::find((int) $target['rol_id'])['codigo'];
+        // Se comprueba antes que los datos: recepción nunca restablece cuentas de personal.
+        if (!self::canReset((string) $actor['rol'], $targetRole)) {
+            throw new HttpException(403, 'Tu cuenta no puede restablecer la contraseña de esta cuenta.');
+        }
+        $errors = self::resetErrors($data, $requireVerification);
+        if ($errors) { throw new ValidationException($errors); }
+        $hash = password_hash((string) $data['password'], PASSWORD_DEFAULT);
+        Database::transaction(function () use ($targetId, $hash, $actor, $target, $targetRole): void {
+            UserRepository::lockAccounts();
+            UserRepository::resetPassword($targetId, $hash);
+            $patientId = (int) Database::run('SELECT id FROM paciente WHERE usuario_id=?', [$targetId])->fetchColumn();
+            AuditRepository::record((int) $actor['id'], 'restablecer_password',
+                'Restablece la contraseña de la cuenta ' . $target['nombre_usuario'] . ' (' . $targetRole . '); debe cambiarla al ingresar.',
+                $patientId ?: null);
+        });
+    }
+    /**
+     * Valida el cambio de la contraseña temporal: debe cumplir la política, coincidir con su confirmación
+     * y no ser igual a la temporal vigente.
+     *
+     * @param string $new contraseña nueva
+     * @param string $confirmation repetición de la contraseña nueva
+     * @param string $currentHash hash de la contraseña temporal vigente
+     * @return array<string,string> errores por campo
+     */
+    public static function changeErrors(string $new, string $confirmation, string $currentHash): array
+    {
+        $errors = [];
+        $problems = Validation::passwordProblems($new);
+        if ($problems) { $errors['password'] = $problems[0]; }
+        elseif ($currentHash !== '' && password_verify($new, $currentHash)) {
+            $errors['password'] = 'La contraseña nueva no puede ser igual a la temporal. Elige otra distinta.';
+        }
+        if ($new !== $confirmation) { $errors['password_confirmation'] = 'Las contraseñas no coinciden.'; }
+        return $errors;
+    }
+    /**
+     * Cambia la contraseña temporal por la que elige la persona y quita la obligación de cambiarla.
+     *
+     * @param array $user usuario autenticado
+     * @param array $data password y password_confirmation
+     * @return string hash de la contraseña nueva (para renovar la sesión)
+     * @throws ValidationException si no cumple la política, no coincide o repite la temporal
+     */
+    public static function changeTemporaryPassword(array $user, array $data): string
+    {
+        $new = (string) ($data['password'] ?? '');
+        $errors = self::changeErrors($new, (string) ($data['password_confirmation'] ?? ''), (string) UserRepository::passwordHash((int) $user['id']));
+        if ($errors) { throw new ValidationException($errors); }
+        $hash = password_hash($new, PASSWORD_DEFAULT);
+        Database::transaction(function () use ($user, $hash): void {
+            UserRepository::completePasswordChange((int) $user['id'], $hash);
+            AuditRepository::record((int) $user['id'], 'cambiar_password_temporal', 'Cambia su contraseña temporal por una elegida por la persona.');
+        });
+        return $hash;
+    }
 }

@@ -36,6 +36,10 @@ try {
         'GET /registro' => [Controller::class, 'registerForm'],
         'POST /registro' => [Controller::class, 'register'],
         'POST /salir' => [Controller::class, 'logout'],
+        // Restablecimiento de contraseña con apoyo de recepción (amplía CU02): página pública y cambio obligatorio.
+        'GET /olvide-password' => [Controller::class, 'forgotPassword'],
+        'GET /cambiar-password' => [Controller::class, 'passwordChangeForm'],
+        'POST /cambiar-password' => [Controller::class, 'passwordChange'],
         // Panel principal y ubicación de la clínica (sin CU propio).
         'GET /panel' => [Controller::class, 'dashboard'],
         'GET /ubicacion' => [Controller::class, 'location'],
@@ -92,6 +96,8 @@ try {
         'GET /pacientes/nuevo' => [PatientController::class, 'form'],
         'POST /pacientes/nuevo' => [PatientController::class, 'save'],
     ];
+    // Una cuenta con contraseña temporal solo puede cambiarla o cerrar sesión.
+    App\Auth::enforcePasswordChange($method, $path);
     // Búsqueda exacta primero; después, rutas con parámetros numéricos.
     $route = $routes[$method . ' ' . $path] ?? null;
     if ($route) { $route(); }
@@ -105,7 +111,8 @@ try {
         elseif ($method==='POST' && isset($m[2])) { AbsenceController::manage((int) $m[1],(int) $m[2]); }
         else { throw new HttpException(404,'No se encontró la página solicitada.'); }
     }
-    // Edición de un usuario existente (CU04).
+    // Edición de un usuario existente y restablecimiento de su contraseña por administración (CU04).
+    elseif ($method === 'POST' && preg_match('#^/usuarios/([1-9][0-9]*)/restablecer$#', $path, $m)) { Controller::resetUserPassword((int) $m[1]); }
     elseif (preg_match('#^/usuarios/([1-9][0-9]*)/editar$#', $path, $m) && in_array($method, ['GET','POST'], true)) {
         $method === 'GET' ? Controller::userForm((int) $m[1]) : Controller::saveUser((int) $m[1]);
     } elseif (preg_match('#^/citas/([1-9][0-9]*)(?:/(confirmar|reprogramar|cancelar|atender|inasistencia))?$#',$path,$m)) {
@@ -139,8 +146,8 @@ try {
     } elseif (preg_match('#^/multas/([1-9][0-9]*)/pagar$#',$path,$m) && in_array($method,['GET','POST'],true)) {
         // Formulario (GET) y registro (POST) del pago de una multa (CU23).
         $method==='GET' ? FineController::form((int) $m[1]) : FineController::pay((int) $m[1]);
-    } elseif (preg_match('#^/pacientes/([1-9][0-9]*)(?:/(editar|desactivar|reactivar))?$#', $path, $m)) {
-        // Ficha, edición (CU06), desactivación (CU06) y reactivación administrativa (CU25) del paciente.
+    } elseif (preg_match('#^/pacientes/([1-9][0-9]*)(?:/(editar|desactivar|reactivar|restablecer))?$#', $path, $m)) {
+        // Ficha, edición (CU06), desactivación (CU06), reactivación administrativa (CU25) y restablecimiento de contraseña del paciente (CU06).
         $id = (int) $m[1]; $action = $m[2] ?? '';
         if ($method === 'GET' && $action === '') { PatientController::detail($id); }
         elseif ($method === 'GET' && $action === 'editar') { PatientController::form($id); }
@@ -148,6 +155,7 @@ try {
         elseif ($method === 'POST' && $action === 'desactivar') { PatientController::deactivate($id); }
         elseif ($method === 'GET' && $action === 'reactivar') { PatientController::reactivateForm($id); }
         elseif ($method === 'POST' && $action === 'reactivar') { PatientController::reactivate($id); }
+        elseif ($method === 'POST' && $action === 'restablecer') { PatientController::resetPassword($id); }
         else { throw new HttpException(404, 'No se encontró la página solicitada.'); }
     } else { throw new HttpException(404, 'No se encontró la página solicitada.'); }
 } catch (HttpException $e) {

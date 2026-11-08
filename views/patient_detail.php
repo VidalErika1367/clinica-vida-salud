@@ -1,4 +1,4 @@
-<?php /* Ficha administrativa del paciente con su resumen (CU06). */ ?>
+<?php /* Ficha administrativa del paciente con su resumen (CU06). */ ?><?php $resetErrors = $resetErrors ?? []; ?>
 <div class="page-heading"><div><span class="eyebrow">PACIENTES</span><h1><?= e($patient['nombres'] . ' ' . $patient['apellidos']) ?></h1><p><?= e(App\PatientService::code((int) $patient['id'])) ?> · Ficha del paciente</p></div><a class="button primary" href="/pacientes/<?= (int) $patient['id'] ?>/editar">Editar paciente</a></div>
 <?php foreach (['general','version'] as $key): ?><?php if (isset($errors[$key])): ?><div class="alert error" role="alert"><?= e($errors[$key]) ?></div><?php endif; ?><?php endforeach; ?>
 <div class="dashboard-grid">
@@ -21,6 +21,20 @@
         </div>
     </section>
 </div>
+<?php if ($patient['usuario_id']): ?>
+<section class="card form-card"><h2>Restablecer contraseña</h2><p>Úsalo cuando el paciente olvidó su contraseña. Verifica antes su identidad con la cédula y sus datos de contacto. Escribe una contraseña temporal: el paciente deberá cambiarla al ingresar y sus sesiones abiertas se cerrarán.</p>
+    <form class="form-stack" method="post" action="/pacientes/<?= (int) $patient['id'] ?>/restablecer">
+        <?= csrf_field() ?>
+        <div class="form-grid">
+            <label>Contraseña temporal<input type="password" name="password" autocomplete="new-password" minlength="8" required><?= field_error($resetErrors,'password') ?></label>
+            <label>Repite la contraseña temporal<input type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required><?= field_error($resetErrors,'password_confirmation') ?></label>
+        </div>
+        <?php $passwordOptional = false; $rulesId = 'reset-rules-title'; require BASE_PATH . '/views/_password_rules.php'; ?>
+        <label class="check-label"><input type="checkbox" name="verificado" value="1" required> Verifiqué la identidad del paciente (CI y datos de contacto)</label><?= field_error($resetErrors,'verificado') ?>
+        <div class="form-actions"><button class="button primary" type="submit">Restablecer contraseña</button></div>
+    </form>
+</section>
+<?php endif; ?>
 <?php if ($patient['activo']): ?>
 <section class="card form-card"><h2>Desactivar paciente</h2><p>El paciente quedará inactivo para nuevas reservas. Sus citas vigentes no se cancelarán automáticamente y su historial se conservará.</p>
     <form class="form-stack" method="post" action="/pacientes/<?= (int) $patient['id'] ?>/desactivar">

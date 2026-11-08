@@ -1,7 +1,7 @@
 <?php /* Requisitos de contraseña con comprobación en vivo (CU01 y CU04). La regla real la aplica el servidor. */ ?>
 <div class="password-rules" data-password-rules<?= !empty($passwordOptional) ? ' data-optional' : '' ?>>
-    <p class="password-rules-title" id="password-rules-title">La contraseña debe tener:</p>
-    <ul class="password-rules-list" aria-live="polite" aria-labelledby="password-rules-title">
+    <p class="password-rules-title" id="<?= e($rulesId ?? 'password-rules-title') ?>">La contraseña debe tener:</p>
+    <ul class="password-rules-list" aria-live="polite" aria-labelledby="<?= e($rulesId ?? 'password-rules-title') ?>">
         <li data-rule="length"><span class="rule-mark" aria-hidden="true">○</span> Al menos 8 caracteres<span class="sr-only" data-rule-state></span></li>
         <li data-rule="upper"><span class="rule-mark" aria-hidden="true">○</span> Una letra mayúscula<span class="sr-only" data-rule-state></span></li>
         <li data-rule="lower"><span class="rule-mark" aria-hidden="true">○</span> Una letra minúscula<span class="sr-only" data-rule-state></span></li>

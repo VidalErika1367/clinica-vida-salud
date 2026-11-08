@@ -95,4 +95,19 @@ final class Auth
         }
         Session::login((int) $user['id'], $hash); return true;
     }
+    /**
+     * Si la cuenta tiene una contraseña temporal (restablecida por recepción o administración), solo permite
+     * abrir "Cambiar contraseña" o cerrar sesión; cualquier otra ruta redirige a esa página.
+     *
+     * @param string $method método HTTP de la petición
+     * @param string $path ruta solicitada
+     * @return void
+     */
+    public static function enforcePasswordChange(string $method, string $path): void
+    {
+        $user = self::current();
+        if (!$user || !$user['debe_cambiar_password']) { return; }
+        $allowed = ($path === '/cambiar-password' && in_array($method, ['GET', 'POST'], true)) || ($path === '/salir' && $method === 'POST');
+        if (!$allowed) { redirect('/cambiar-password'); }
+    }
 }

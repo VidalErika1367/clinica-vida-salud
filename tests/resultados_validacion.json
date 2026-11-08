@@ -418,7 +418,7 @@
       "passed": true
     },
     {
-      "name": "Búsqueda de paciente: prueba_988592fd-CLINICA",
+      "name": "Búsqueda de paciente: prueba_4a4b893d-CLINICA",
       "passed": true
     },
     {
@@ -1410,7 +1410,7 @@
       "passed": true
     },
     {
-      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-05T23:14'}",
+      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-06T11:49'}",
       "passed": true
     },
     {

@@ -136,14 +136,16 @@ final class Controller
      * Muestra el formulario de alta o edición de un usuario (CU04).
      *
      * @param int|null $id usuario a editar; null para un alta nueva
+     * @param array $resetErrors errores del formulario de restablecimiento de contraseña, si se acaba de enviar
      * @return void
      * @throws HttpException 403 sin permiso CU04; 404 si el usuario no existe
      */
-    public static function userForm(?int $id = null): void
+    public static function userForm(?int $id = null, array $resetErrors = []): void
     {
         Auth::requireAdmin('CU04');
         View::render('user_form', ['title' => $id ? 'Editar usuario' : 'Nuevo usuario', 'editing' => $id,
-            'old' => $id ? UserService::find($id) : ['habilitado' => true], 'roles' => UserService::roles()]);
+            'old' => $id ? UserService::find($id) : ['habilitado' => true], 'roles' => UserService::roles(),
+            'resetErrors' => $resetErrors], $resetErrors ? 422 : 200);
     }
     /**
      * Guarda el alta o cambio de un usuario (CU04). Revalida la cuenta en el servicio.
@@ -193,5 +195,77 @@ final class Controller
         } catch (ValidationException $e) {
             View::render('roles', RoleService::viewData() + ['errors' => $e->errors], 422);
         }
+    }
+    /**
+     * Restablece la contraseña de cualquier cuenta con una contraseña temporal (amplía CU04). Solo administradores.
+     * La cuenta deberá cambiarla al ingresar y sus sesiones abiertas dejan de ser válidas.
+     *
+     * @param int $id cuenta a restablecer
+     * @return void
+     * @throws HttpException 403 sin permiso CU04; 404 si la cuenta no existe
+     */
+    public static function resetUserPassword(int $id): void
+    {
+        $actor = Auth::requireAdmin('CU04');
+        try {
+            UserService::restablecer($id, ['password' => raw_password(), 'password_confirmation' => raw_password('password_confirmation')], $actor, false);
+            Session::flash('Contraseña temporal guardada. La persona deberá cambiarla al ingresar y sus sesiones abiertas se cerraron.');
+            redirect('/usuarios/' . $id . '/editar');
+        } catch (ValidationException $e) {
+            self::userForm($id, $e->errors);
+        }
+    }
+    /**
+     * Página pública "¿Olvidaste tu contraseña?" (amplía CU02): explica que recepción restablece la contraseña
+     * y ofrece los contactos de WhatsApp con un mensaje prellenado.
+     *
+     * @return void
+     */
+    public static function forgotPassword(): void
+    {
+        self::guest();
+        View::render('forgot_password', ['title' => 'Olvidé mi contraseña', 'user' => null,
+            'contacts' => ReceptionContact::whatsapp(ReceptionContact::FORGOT_MESSAGE)]);
+    }
+    /**
+     * Cuenta con contraseña temporal autenticada, o null si no hay sesión o no tiene nada que cambiar.
+     * Sin sesión redirige al ingreso; sin contraseña temporal pendiente, al panel.
+     *
+     * @return array usuario autenticado con contraseña temporal pendiente
+     */
+    private static function temporaryAccount(): array
+    {
+        $user = Auth::requireUser();
+        if (!$user['debe_cambiar_password']) { redirect('/panel'); }
+        return $user;
+    }
+    /**
+     * Muestra "Cambiar contraseña", la única página disponible mientras la contraseña sea temporal (amplía CU02).
+     *
+     * @param array $errors errores del envío anterior
+     * @return void
+     */
+    public static function passwordChangeForm(array $errors = []): void
+    {
+        $user = self::temporaryAccount();
+        View::render('change_password', ['title' => 'Cambiar contraseña', 'user' => null, 'errors' => $errors,
+            'account' => $user['nombre_usuario']], $errors ? 422 : 200);
+    }
+    /**
+     * Guarda la contraseña nueva (distinta de la temporal), quita la obligación de cambiarla y regenera la sesión.
+     *
+     * @return void
+     */
+    public static function passwordChange(): void
+    {
+        $user = self::temporaryAccount();
+        try {
+            $hash = UserService::changeTemporaryPassword($user, ['password' => raw_password(), 'password_confirmation' => raw_password('password_confirmation')]);
+        } catch (ValidationException $e) {
+            self::passwordChangeForm($e->errors); return;
+        }
+        Session::login((int) $user['id'], $hash);
+        Session::flash('Contraseña actualizada. Ya puedes usar el sistema.');
+        redirect('/panel');
     }
 }

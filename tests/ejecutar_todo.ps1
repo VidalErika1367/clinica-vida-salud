@@ -104,7 +104,8 @@ $batteries = @(
     @{ Name = 'cu21_25'; File = 'tests\cu21_25_smoke.py'; Report = 'tests\resultados_validacion_cu21_25.json' },
     @{ Name = 'cu26_30'; File = 'tests\cu26_30_smoke.py'; Report = 'tests\resultados_validacion_cu26_30.json' },
     @{ Name = 'ajustes'; File = 'tests\ajustes_smoke.py'; Report = 'tests\resultados_validacion_ajustes.json' },
-    @{ Name = 'menu_movil'; File = 'tests\menu_movil_smoke.py'; Report = 'tests\resultados_validacion_menu_movil.json' }
+    @{ Name = 'menu_movil'; File = 'tests\menu_movil_smoke.py'; Report = 'tests\resultados_validacion_menu_movil.json' },
+    @{ Name = 'restablecer'; File = 'tests\restablecer_smoke.py'; Report = 'tests\resultados_validacion_restablecer.json' }
 )
 $summary = @()
 $failed = $false

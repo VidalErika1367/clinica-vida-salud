@@ -90,14 +90,15 @@ final class UserRepository
     }
 
     /**
-     * Cuenta habilitada con rol, datos de paciente o médico y si tiene deuda. Se lee en cada petición.
+     * Cuenta habilitada con rol, datos de paciente o médico, si tiene deuda y si debe cambiar su contraseña temporal.
+     * Se lee en cada petición.
      *
      * @param int $id usuario
      * @return array|false cuenta o false si no existe o está deshabilitada
      */
     public static function sessionAccount(int $id): array|false
     {
-        return Database::run("SELECT u.id,u.nombre_usuario,u.correo,u.password_hash,
+        return Database::run("SELECT u.id,u.nombre_usuario,u.correo,u.password_hash,u.debe_cambiar_password,
             r.codigo AS rol,r.nombre AS rol_nombre,p.id AS paciente_id,p.activo AS paciente_activo,
             COALESCE(p.nombres,m.nombres,u.nombre_usuario) AS nombre,
             CASE WHEN p.id IS NULL THEN false ELSE NOT fn_paciente_sin_deuda(p.id) END AS tiene_deuda
@@ -146,5 +147,41 @@ final class UserRepository
     public static function updatePassword(int $id, string $hash): void
     {
         Database::run('UPDATE usuario SET password_hash=? WHERE id=?', [$hash, $id]);
+    }
+
+    /**
+     * Hash vigente de la contraseña de una cuenta (solo para compararlo en el servidor).
+     *
+     * @param int $id usuario
+     * @return string|false hash o false si no existe
+     */
+    public static function passwordHash(int $id): string|false
+    {
+        return Database::run('SELECT password_hash FROM usuario WHERE id=?', [$id])->fetchColumn();
+    }
+
+    /**
+     * Guarda una contraseña temporal y obliga a cambiarla en el siguiente ingreso (restablecimiento, CU04 y CU06).
+     * Al cambiar el hash se invalidan las sesiones abiertas de la cuenta (véase Auth::current()).
+     *
+     * @param int $id usuario
+     * @param string $hash hash de la contraseña temporal
+     * @return void
+     */
+    public static function resetPassword(int $id, string $hash): void
+    {
+        Database::run('UPDATE usuario SET password_hash=?,debe_cambiar_password=true WHERE id=?', [$hash, $id]);
+    }
+
+    /**
+     * Guarda la contraseña elegida por la persona y quita la obligación de cambiarla.
+     *
+     * @param int $id usuario
+     * @param string $hash hash de la contraseña nueva
+     * @return void
+     */
+    public static function completePasswordChange(int $id, string $hash): void
+    {
+        Database::run('UPDATE usuario SET password_hash=?,debe_cambiar_password=false WHERE id=?', [$hash, $id]);
     }
 }

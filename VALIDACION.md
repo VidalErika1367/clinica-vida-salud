@@ -1,13 +1,13 @@
 # Validación CU01–CU30
 
 - Sintaxis: 127 archivos PHP revisados sin errores; incluye la utilidad CLI de comprobación de tareas añadida después de la regresión de la aplicación.
-- Pruebas unitarias: 120 comprobaciones correctas.
-- HTTP y servicios: 704 comprobaciones correctas (375 CU01–CU15, 82 CU16–CU20, 97 CU21–CU25, 98 CU26–CU30, 41 ajustes de sincronización y 11 de navegación móvil).
+- Pruebas unitarias: 133 comprobaciones correctas.
+- HTTP y servicios: 773 comprobaciones correctas (375 CU01–CU15, 82 CU16–CU20, 97 CU21–CU25, 98 CU26–CU30, 41 ajustes de sincronización, 11 de navegación móvil y 69 del restablecimiento de contraseña).
 - JavaScript: 29 comprobaciones: 5 del contador, 4 de filtros de reportes, 10 del menú móvil y 10 de la lista de requisitos de contraseña.
-- Total: 853 comprobaciones automatizadas.
+- Total: 935 comprobaciones automatizadas.
 - Resultados: tests/resultados_validacion_menu_movil.json, además de los reportes de regresión anteriores.
 - Actualización 005 a 007 y 006 a 007: preservan cuentas, contraseñas, pacientes y solicitudes previas y se aplican una sola vez. El recorrido 006 a 007 también conserva una ausencia, un vínculo de Telegram y un aviso previos.
-- Las siete migraciones 001–007 conservan sus bytes en estos ajustes; no se modifica el esquema.
+- Las migraciones 001–007 conservan sus bytes; la 008 agrega la columna usuario.debe_cambiar_password para el restablecimiento de contraseña.
 
 Entorno automatizado: PHP 8.4.24, PDO_PGSQL, mbstring y PostgreSQL nativo 17.11, por TCP y sobre bases locales desechables *_test. El requisito de la aplicación se mantiene en PHP >=8.2 y PostgreSQL >=16. Los ajustes y el menú móvil se instalaron en Windows con PHP 8.2.12 y PostgreSQL 16; las comprobaciones manuales constan abajo. Su instalación en Render no se ha verificado.
 

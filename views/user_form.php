@@ -1,4 +1,4 @@
-<?php /* Formulario de alta o edición de usuario (CU04). */ ?>
+<?php /* Formulario de alta o edición de usuario (CU04). */ ?><?php $resetErrors = $resetErrors ?? []; ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1><?= $editing ? 'Editar usuario' : 'Nuevo usuario' ?></h1><p>Define su cuenta y el rol que le corresponde.</p></div><a href="/usuarios" class="button quiet">Volver</a></div>
 <section class="card form-card">
     <?php if (isset($errors['general'])): ?><div class="alert error" role="alert"><?= e($errors['general']) ?></div><?php endif; ?>
@@ -14,3 +14,16 @@
         <div class="form-actions"><button type="submit" class="button primary">Guardar usuario</button><a href="/usuarios" class="button quiet">Cancelar</a></div>
     </form>
 </section>
+<?php if ($editing): ?>
+<section class="card form-card"><h2>Restablecer contraseña</h2><p>Guarda una contraseña temporal para esta cuenta. La persona deberá cambiarla al ingresar y sus sesiones abiertas se cerrarán. Comunícasela por un medio seguro.</p>
+    <form class="form-stack" method="post" action="/usuarios/<?= (int) $editing ?>/restablecer">
+        <?= csrf_field() ?>
+        <div class="form-grid">
+            <label>Contraseña temporal<input type="password" name="password" autocomplete="new-password" minlength="8" required><?= field_error($resetErrors,'password') ?></label>
+            <label>Repite la contraseña temporal<input type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required><?= field_error($resetErrors,'password_confirmation') ?></label>
+        </div>
+        <?php $passwordOptional = false; $rulesId = 'reset-rules-title'; require BASE_PATH . '/views/_password_rules.php'; ?>
+        <div class="form-actions"><button class="button primary" type="submit">Restablecer contraseña</button></div>
+    </form>
+</section>
+<?php endif; ?>
