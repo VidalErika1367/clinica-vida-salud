@@ -1,8 +1,12 @@
-<?php /* Reportes administrativos de citas, pagos y pacientes (CU20). */ ?>
+<?php /* Reportes administrativos de citas, pagos y pacientes (CU20). Los comandos de voz están en public/assets/app.js (initReportVoice); el servidor no cambia. */ ?>
 <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Reportes administrativos</h1><p>Consulta las citas, las altas de pacientes o los pagos de multas del período seleccionado.</p></div></div>
 <?php require BASE_PATH . '/views/_appointment_errors.php'; ?>
 <section class="card">
-<form class="form-stack" method="get" action="/reportes" data-report-filters>
+<div class="voice-bar">
+    <button class="button" type="button" id="voice-report-button" data-voice-report aria-label="Pedir reporte por voz" aria-pressed="false" hidden>🎤 Hablar</button>
+    <p class="field-help" id="voice-report-status" aria-live="polite" data-voice-status></p>
+</div>
+<form id="report-filters" class="form-stack" method="get" action="/reportes" data-report-filters>
 <div class="report-filters">
     <label>Reporte<select name="tipo">
         <?php foreach (['citas'=>'Actividad de citas','pacientes'=>'Pacientes registrados','pagos'=>'Pagos de multas'] as $value=>$label): ?><option value="<?= e($value) ?>" <?= $type===$value ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?>
@@ -33,6 +37,7 @@
 </form></section>
 <?php if (!$errors): ?>
 <p class="report-caption">Período<?= $type==='pacientes' ? ' de altas' : '' ?>: <?= e($filters['desde']) ?> a <?= e($filters['hasta']) ?> · Consulta: <?= e(clinic_datetime($generatedAt)) ?> · Hora de Bolivia</p>
+<p><button class="button" type="button" id="read-report-totals" hidden>🔊 Leer totales</button></p>
 <?php if ($type==='citas'): ?>
 <div class="stats-grid report-stats">
 <?php foreach (['total'=>'Total de citas','pacientes'=>'Pacientes con citas','programadas'=>'Programadas','confirmadas'=>'Confirmadas','atendidas'=>'Atendidas','canceladas'=>'Canceladas','inasistencias'=>'Inasistencias'] as $key=>$label): ?><article class="stat"><span><?= e($label) ?></span><strong data-total="<?= e($key) ?>"><?= (int) $summary[$key] ?></strong></article><?php endforeach; ?>

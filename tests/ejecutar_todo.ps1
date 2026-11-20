@@ -142,7 +142,7 @@ $unit | Select-Object -Last 3 | ForEach-Object { Write-Host $_ }
 $summary += [pscustomobject]@{ Bateria = 'unit.php'; Comprobaciones = ($unit | Select-Object -Last 1); Estado = $(if ($unitCode -eq 0) { 'OK' } else { "FALLO ($unitCode)" }) }
 if ($unitCode -ne 0) { $failed = $true }
 
-foreach ($mjs in 'counter_browser', 'report_filters_browser', 'mobile_menu_browser', 'password_checklist_browser') {
+foreach ($mjs in 'counter_browser', 'report_filters_browser', 'voice_reports_browser', 'mobile_menu_browser', 'password_checklist_browser') {
     Write-Host "=== $mjs.mjs ===" -ForegroundColor Cyan
     $out = & $node "tests\$mjs.mjs" 2>&1 | ForEach-Object { "$_" }
     $code = $LASTEXITCODE
