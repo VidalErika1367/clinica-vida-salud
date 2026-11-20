@@ -541,6 +541,32 @@ const initReportVoice = (doc, win) => {
 };
 if (typeof document !== 'undefined' && document.getElementById('report-filters')) initReportVoice(document, window);
 
+// Exportación de reportes (CU20): los enlaces «Descargar Excel» y «Descargar PDF» llevan los filtros que
+// se ven en el formulario, también si el reporte se pidió por voz. Sin JavaScript conservan los filtros de la página.
+const initReportExport = doc => {
+    const form = doc.getElementById('report-filters');
+    const enlaces = doc.querySelectorAll('[data-report-export]');
+    if (!form || !enlaces.length) return;
+    const actualizar = () => {
+        const filtros = new URLSearchParams(new FormData(form));
+        filtros.delete('pagina');
+        enlaces.forEach(enlace => {
+            const params = new URLSearchParams(filtros);
+            const csv = enlace.dataset.reportExport === 'csv';
+            if (csv) params.set('formato', 'csv');
+            enlace.setAttribute('href', (csv ? '/reportes/exportar' : '/reportes/imprimir') + '?' + params.toString());
+        });
+    };
+    form.addEventListener('change', actualizar);
+    actualizar();
+};
+if (typeof document !== 'undefined' && document.getElementById('report-filters')) initReportExport(document);
+
+// Botón «Imprimir / Guardar como PDF» de la vista de impresión (CU20). Sin JavaScript inline: la CSP lo bloquea.
+document.querySelectorAll('[data-print-report]').forEach(boton => {
+    boton.addEventListener('click', () => window.print());
+});
+
 // Pruebas de Node (tests/voice_reports_browser.mjs): exporta las funciones puras. En el navegador no existe `module`.
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {normalizarFrase, interpretarFraseReporte, describirPeriodo, textoLecturaReporte, leerTotalesPagina, initReportVoice};

@@ -140,3 +140,28 @@ textarea{font:inherit;display:block;width:100%;max-width:100%;min-height:100px;b
 @media(prefers-reduced-motion:reduce){.profile-login-option{transition:none}.profile-login-option:hover{transform:none}}
 /* Comandos de voz en reportes (CU20) */
 .voice-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.voice-bar .field-help{margin:0}.voice-bar [aria-pressed="true"]{box-shadow:0 0 0 3px rgba(0,0,0,.25)}
+
+/* Vista para imprimir o guardar como PDF (CU20): sin menú, tamaño carta y encabezado de tabla en cada página */
+.print-report{background:#fff;color:#111;margin:0;font-size:12px}
+.print-doc{max-width:960px;margin:0 auto;padding:16px}
+.print-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #1f4f46}
+.print-head div{display:flex;flex-direction:column;flex:1}
+.print-head span{color:#555}
+.print-doc h1{font-size:18px;margin:8px 0}
+.print-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px 16px;margin:0 0 12px}
+.print-meta div{display:flex;gap:6px}
+.print-meta dt{font-weight:700}
+.print-meta dd{margin:0}
+.print-table{width:100%;border-collapse:collapse}
+.print-table th,.print-table td{border:1px solid #bbb;padding:4px 6px;text-align:left;vertical-align:top}
+.print-table th{background:#eef3f2}
+.print-table tfoot td{font-weight:700;background:#f6f6f6}
+.print-table tr{break-inside:avoid}
+@media print{
+    @page{size:letter;margin:16mm 14mm}
+    .no-print{display:none!important}
+    .print-doc{max-width:none;padding:0}
+    .print-table thead{display:table-header-group}
+    .print-table tfoot{display:table-footer-group}
+    .print-report{font-size:10.5pt}
+}

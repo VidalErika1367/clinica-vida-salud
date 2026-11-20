@@ -11,6 +11,7 @@ use App\ScheduleController;
 use App\AvailabilityController;
 use App\AppointmentController;
 use App\AppointmentReadController;
+use App\ReportExportController;
 use App\UrgentController;
 use App\FineController;
 use App\AbsenceController;
@@ -66,6 +67,9 @@ try {
         'GET /agenda' => static fn()=>AppointmentReadController::show('agenda'),
         'GET /historial' => static fn()=>AppointmentReadController::show('historial'),
         'GET /reportes' => static fn()=>AppointmentReadController::show('reportes'),
+        // Exportación de reportes (CU20): CSV para Excel y vista para imprimir o guardar como PDF.
+        'GET /reportes/exportar' => [ReportExportController::class, 'csv'],
+        'GET /reportes/imprimir' => [ReportExportController::class, 'imprimir'],
         // Citas urgentes: solicitud por el paciente (CU21) y gestión por recepción (CU22).
         'GET /urgencias' => [UrgentController::class, 'index'],
         'GET /urgencias/nueva' => [UrgentController::class, 'form'],

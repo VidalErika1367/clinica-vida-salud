@@ -1,7 +1,7 @@
 {
   "regresion": 375,
-  "nuevas": 82,
-  "passed": 457,
+  "nuevas": 91,
+  "passed": 466,
   "results": [
     {
       "name": "Panel privado exige iniciar sesión",
@@ -420,7 +420,7 @@
       "passed": true
     },
     {
-      "name": "Búsqueda de paciente: prueba_c90c1091-CLINICA",
+      "name": "Búsqueda de paciente: prueba_7930f4f4-CLINICA",
       "passed": true
     },
     {
@@ -1240,15 +1240,15 @@
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T10:30",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-12-07T10:30",
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T14:00",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-12-07T14:00",
       "passed": true
     },
     {
-      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-11-23T08:15",
+      "name": "Reserva rechaza ausencia, horario o instante inválido: 2026-12-07T08:15",
       "passed": true
     },
     {
@@ -1412,7 +1412,7 @@
       "passed": true
     },
     {
-      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-06T12:11'}",
+      "name": "Cancelación autorizada sin nueva sanción: {'aviso_cancelacion_en': '2026-11-18T08:03'}",
       "passed": true
     },
     {
@@ -1809,6 +1809,42 @@
     },
     {
       "name": "CU20: múltiples cambios de una cita no duplican el importe cobrado",
+      "passed": true
+    },
+    {
+      "name": "CU20: CSV con BOM UTF-8, tipo de contenido y nombre de archivo",
+      "passed": true
+    },
+    {
+      "name": "CU20: CSV incluye todas las citas sin paginar y una fila final de totales",
+      "passed": true
+    },
+    {
+      "name": "CU20: CSV de pagos conserva el importe exacto y el total",
+      "passed": true
+    },
+    {
+      "name": "CU20: la exportación solo acepta formato csv",
+      "passed": true
+    },
+    {
+      "name": "CU20: la exportación con filtros inválidos vuelve a /reportes para mostrar el error",
+      "passed": true
+    },
+    {
+      "name": "CU20: la vista para imprimir responde 200 sin JavaScript en línea",
+      "passed": true
+    },
+    {
+      "name": "CU20: cada exportación o impresión queda registrada en evento_administrativo",
+      "passed": true
+    },
+    {
+      "name": "Paciente no descarga ni imprime reportes administrativos",
+      "passed": true
+    },
+    {
+      "name": "Médico no descarga ni imprime reportes administrativos",
       "passed": true
     },
     {

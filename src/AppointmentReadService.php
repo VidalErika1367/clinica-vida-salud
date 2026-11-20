@@ -185,14 +185,15 @@ final class AppointmentReadService
      *
      * @param array $input tipo de reporte y filtros
      * @param int $userId usuario que consulta
+     * @param bool $todas true para la exportación: incluye todas las filas sin paginar
      * @return array datos para la vista
      * @throws HttpException 403 sin permiso CU20
      * @throws ValidationException si el tipo, los filtros o el catálogo no son válidos
      */
-    public static function report(array $input, int $userId): array
+    public static function report(array $input, int $userId, bool $todas = false): array
     {
         AppointmentService::actor($userId,'CU20');
-        return self::snapshot(function () use ($input): array {
+        return self::snapshot(function () use ($input, $todas): array {
             $type=self::text($input,'tipo','citas');
             if (!in_array($type,['citas','pagos','pacientes'],true)) { throw new ValidationException(['tipo'=>'Selecciona un reporte válido.']); }
             $filterInput=$input;
@@ -212,7 +213,8 @@ final class AppointmentReadService
                 }
             }
             if ($type==='pagos') { $filters['estado']='todos'; }
-            $page=self::page($input['pagina'] ?? null);
+            // La exportación (todas) no usa paginación: el CSV y la impresión incluyen cada fila.
+            $page=$todas ? null : self::page($input['pagina'] ?? null);
             return ['filters'=>$filters,'type'=>$type,'doctors'=>$doctors,'specialties'=>$specialties,
                 'summary'=>$type==='citas' ? AppointmentReadRepository::activity($filters) : null,
                 'listing'=>match ($type) {

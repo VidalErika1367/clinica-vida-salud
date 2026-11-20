@@ -62,15 +62,39 @@ final class AppointmentReadRepository
      * @param int $page página (desde 1)
      * @return array items, total, página y número de páginas
      */
-    public static function appointments(array $filters, int $page): array
+    public static function appointments(array $filters, ?int $page): array
     {
         [$where,$values]=self::where($filters);
         $total=(int) Database::run('SELECT count(*)'.self::JOINS.$where,$values)->fetchColumn();
+        [$limit,$limitValues]=self::limit($values,$page);
         $items=Database::run("SELECT c.id,c.inicio,c.fin,c.estado,c.tipo,p.ci,
             p.nombres || ' ' || p.apellidos AS paciente,m.nombres || ' ' || m.apellidos AS medico,
             e.nombre AS especialidad,c.creado_en".self::JOINS.$where
-            .' ORDER BY c.inicio DESC,c.id DESC LIMIT 50 OFFSET ?',[...$values,($page-1)*50])->fetchAll();
-        return ['items'=>$items,'total'=>$total,'page'=>$page,'pages'=>max(1,(int) ceil($total/50))];
+            .' ORDER BY c.inicio DESC,c.id DESC'.$limit,$limitValues)->fetchAll();
+        return ['items'=>$items,'total'=>$total,'page'=>$page ?? 1,'pages'=>self::pages($total,$page)];
+    }
+    /**
+     * Añade LIMIT/OFFSET de 50 filas por página. Con página null (exportación) no se pagina.
+     *
+     * @param array $values valores ya usados por la consulta
+     * @param int|null $page página desde 1, o null para todas las filas
+     * @return array [fragmento SQL, valores completos]
+     */
+    private static function limit(array $values, ?int $page): array
+    {
+        if ($page === null) { return ['', $values]; }
+        return [' LIMIT 50 OFFSET ?', [...$values, ($page-1)*50]];
+    }
+    /**
+     * Número de páginas del listado; una exportación completa cuenta como una sola.
+     *
+     * @param int $total filas totales
+     * @param int|null $page página, o null para todas
+     * @return int páginas (mínimo 1)
+     */
+    private static function pages(int $total, ?int $page): int
+    {
+        return $page === null ? 1 : max(1, (int) ceil($total/50));
     }
     /**
      * Totales de citas por estado dentro del rango (resumen del reporte de citas).
@@ -95,7 +119,7 @@ final class AppointmentReadRepository
      * @param int $page página (desde 1)
      * @return array items, totales por estado y paginación
      */
-    public static function registeredPatients(array $filters, int $page): array
+    public static function registeredPatients(array $filters, ?int $page): array
     {
         $where=' WHERE p.creado_en>=?::date AND p.creado_en<(?::date+1)';
         $where.=match ($filters['estado_paciente']) {
@@ -107,12 +131,12 @@ final class AppointmentReadRepository
         // La fecha de alta pertenece a la ficha: incluye pacientes sin cuenta ni citas.
         $summary=Database::run('SELECT count(*) AS total,count(*) FILTER(WHERE p.activo) AS activos,
             count(*) FILTER(WHERE NOT p.activo) AS inactivos FROM paciente p'.$where,$values)->fetch();
+        [$limit,$limitValues]=self::limit($values,$page);
         $items=Database::run('SELECT p.id,p.ci,p.nombres,p.apellidos,p.activo,p.creado_en
-            FROM paciente p'.$where.' ORDER BY p.creado_en DESC,p.id DESC LIMIT 50 OFFSET ?',
-            [...$values,($page-1)*50])->fetchAll();
+            FROM paciente p'.$where.' ORDER BY p.creado_en DESC,p.id DESC'.$limit,$limitValues)->fetchAll();
         return ['items'=>$items,'total'=>(int) $summary['total'],'activos'=>(int) $summary['activos'],
-            'inactivos'=>(int) $summary['inactivos'],'page'=>$page,
-            'pages'=>max(1,(int) ceil((int) $summary['total']/50))];
+            'inactivos'=>(int) $summary['inactivos'],'page'=>$page ?? 1,
+            'pages'=>self::pages((int) $summary['total'],$page)];
     }
     /**
      * Pagos de multas registrados en el rango (reporte de pagos). Una fila por pago.
@@ -121,7 +145,7 @@ final class AppointmentReadRepository
      * @param int $page página (desde 1)
      * @return array items, total de pagos, monto total y paginación
      */
-    public static function payments(array $filters, int $page): array
+    public static function payments(array $filters, ?int $page): array
     {
         [$where,$values]=self::where($filters,'pm.pagado_en');
         // Una fila por pago. Nunca se unen pagos con historial_cita ni con avisos.
@@ -131,12 +155,12 @@ final class AppointmentReadRepository
             JOIN especialidad e ON e.id=c.especialidad_id ';
         $summary=Database::run('SELECT count(*) AS total,COALESCE(sum(pm.monto),0)::text AS monto'
             .$joins.$where,$values)->fetch();
+        [$limit,$limitValues]=self::limit($values,$page);
         $items=Database::run("SELECT pm.id,pm.pagado_en,pm.monto,pm.comprobante,c.id AS cita_id,
             p.nombres || ' ' || p.apellidos AS paciente,m.nombres || ' ' || m.apellidos AS medico"
-            .$joins.$where.' ORDER BY pm.pagado_en DESC,pm.id DESC LIMIT 50 OFFSET ?',
-            [...$values,($page-1)*50])->fetchAll();
+            .$joins.$where.' ORDER BY pm.pagado_en DESC,pm.id DESC'.$limit,$limitValues)->fetchAll();
         return ['items'=>$items,'total'=>(int) $summary['total'],'monto'=>$summary['monto'],
-            'page'=>$page,'pages'=>max(1,(int) ceil((int) $summary['total']/50))];
+            'page'=>$page ?? 1,'pages'=>self::pages((int) $summary['total'],$page)];
     }
     /**
      * Ausencias de médicos que se cruzan con el rango de fechas (se muestran en la agenda).

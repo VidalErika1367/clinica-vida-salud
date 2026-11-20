@@ -2,6 +2,8 @@
 # Uso (desde la raíz del proyecto): powershell -ExecutionPolicy Bypass -File tests\ejecutar_todo.ps1
 # Nunca usa el puerto 8000 ni la base clinica_vida_salud: el servidor de pruebas escucha en 8011.
 # Lee DB_HOST, DB_PORT, DB_USER y DB_PASSWORD de .env (o del entorno); solo cambia el nombre de la base.
+# Opcional: -Solo cu16_20 ejecuta únicamente esa batería (sin unit.php ni los .mjs).
+param([string[]]$Solo = @())
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
@@ -107,6 +109,10 @@ $batteries = @(
     @{ Name = 'menu_movil'; File = 'tests\menu_movil_smoke.py'; Report = 'tests\resultados_validacion_menu_movil.json' },
     @{ Name = 'restablecer'; File = 'tests\restablecer_smoke.py'; Report = 'tests\resultados_validacion_restablecer.json' }
 )
+if ($Solo.Count -gt 0) {
+    $batteries = @($batteries | Where-Object { $Solo -contains $_.Name })
+    if ($batteries.Count -ne $Solo.Count) { throw 'Nombre de batería no válido en -Solo. Opciones: http_smoke, cu16_20, cu21_25, cu26_30, ajustes, menu_movil, restablecer.' }
+}
 $summary = @()
 $failed = $false
 
@@ -135,6 +141,7 @@ finally {
     Stop-TestServer
 }
 
+if ($Solo.Count -eq 0) {
 Write-Host '=== unit.php ===' -ForegroundColor Cyan
 $unit = & $php tests/unit.php 2>&1 | ForEach-Object { "$_" }
 $unitCode = $LASTEXITCODE
@@ -149,6 +156,7 @@ foreach ($mjs in 'counter_browser', 'report_filters_browser', 'voice_reports_bro
     $out | Select-Object -Last 3 | ForEach-Object { Write-Host $_ }
     $summary += [pscustomobject]@{ Bateria = "$mjs.mjs"; Comprobaciones = ($out | Select-Object -Last 1); Estado = $(if ($code -eq 0) { 'OK' } else { "FALLO ($code)" }) }
     if ($code -ne 0) { $failed = $true }
+}
 }
 
 Write-Host ''

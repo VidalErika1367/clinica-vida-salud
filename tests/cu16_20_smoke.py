@@ -4,7 +4,9 @@ Ejecuta primero la regresión CU01-CU15 y después estas pruebas. Las credencial
 son aleatorias y las citas históricas se crean exclusivamente como fixtures.
 Usa las mismas variables e instrucciones de tests/http_smoke.py.
 """
+import csv
 import html
+import io
 import json
 import os
 from pathlib import Path
@@ -298,6 +300,36 @@ sql("""INSERT INTO historial_cita(cita_id,actor_id,accion,datos_despues)
     SELECT c.id,?,'fixture histórico',to_jsonb(c) FROM cita c CROSS JOIN generate_series(1,12) WHERE c.id=?""", [admin_id, no_show2])
 check('data-total="monto">20,00<' in receipt.request(payments_url)[1],
       'CU20: múltiples cambios de una cita no duplican el importe cobrado')
+
+# Exportación (CU20): CSV para Excel con BOM y totales, vista para imprimir y acceso restringido.
+export_filters = {'desde': '2000-01-01', 'hasta': '2099-12-31', 'medico_id': doc_id, 'especialidad_id': specialty}
+csv_status, csv_body, csv_headers = receipt.request(geturl('/reportes/exportar', formato='csv', **export_filters))
+csv_rows = list(csv.reader(io.StringIO(csv_body[1:]), delimiter=';'))
+expected_rows = int(sql('SELECT count(*) AS n FROM cita WHERE medico_id=? AND especialidad_id=?', [doc_id, specialty])[0]['n'])
+check(csv_status == 200 and csv_body.startswith('﻿')
+      and csv_headers.get('Content-Type', '').startswith('text/csv; charset=UTF-8')
+      and csv_headers.get('Content-Disposition') == 'attachment; filename="reporte_citas_2000-01-01_2099-12-31.csv"',
+      'CU20: CSV con BOM UTF-8, tipo de contenido y nombre de archivo')
+check(len(csv_rows) == expected_rows + 2 and csv_rows[-1][1] == 'Citas: ' + str(expected_rows),
+      'CU20: CSV incluye todas las citas sin paginar y una fila final de totales')
+pay_status, pay_body, _ = receipt.request(geturl('/reportes/exportar', formato='csv', tipo='pagos', desde=today, hasta=today, medico_id=doc_id))
+pay_rows = list(csv.reader(io.StringIO(pay_body[1:]), delimiter=';'))
+check(pay_status == 200 and pay_rows[-1][1] == 'Pagos: 1' and pay_rows[-1][2] == 'Monto total (Bs): 20,00',
+      'CU20: CSV de pagos conserva el importe exacto y el total')
+check(receipt.request(geturl('/reportes/exportar', formato='pdf', **export_filters))[0] == 422,
+      'CU20: la exportación solo acepta formato csv')
+check(receipt.request(geturl('/reportes/exportar', formato='csv', desde='2026-12-01', hasta='2026-01-01'))[0] == 303,
+      'CU20: la exportación con filtros inválidos vuelve a /reportes para mostrar el error')
+print_status, print_body, _ = receipt.request(geturl('/reportes/imprimir', **export_filters))
+check(print_status == 200 and 'print-table' in print_body and 'Clínica Vida Salud' in print_body
+      and 'data-print-report' in print_body and 'onclick' not in print_body and '<script>' not in print_body,
+      'CU20: la vista para imprimir responde 200 sin JavaScript en línea')
+check(int(sql("SELECT count(*) AS n FROM evento_administrativo WHERE accion IN ('exportar_reporte_csv','imprimir_reporte')")[0]['n']) >= 3,
+      'CU20: cada exportación o impresión queda registrada en evento_administrativo')
+for browser, role in [(patient, 'Paciente'), (doctor, 'Médico')]:
+    check(browser.request(geturl('/reportes/exportar', formato='csv', **export_filters))[0] == 403
+          and browser.request(geturl('/reportes/imprimir', **export_filters))[0] == 403,
+          role + ' no descarga ni imprime reportes administrativos')
 for permission, path in [('CU18','/agenda'), ('CU19','/historial'), ('CU20','/reportes')]:
     sql('DELETE FROM rol_permiso WHERE rol_id=? AND permiso_id=(SELECT id FROM permiso WHERE codigo=?)', [roles['recepcionista'], permission])
     try:

@@ -33,7 +33,17 @@
     <p class="field-help" data-report-help="pacientes" <?= $type!=='pacientes' ? 'hidden' : '' ?>>Se filtra por la fecha de alta del paciente. Incluye fichas sin cuenta web y sin citas. El estado corresponde al actual de la ficha.</p>
     <p class="field-help" data-report-help="pagos" <?= $type!=='pagos' ? 'hidden' : '' ?>>Los pagos se filtran por la fecha del pago y no por el estado de la cita.</p>
 </div>
-<div class="form-actions"><button class="button primary" type="submit">Generar reporte</button></div>
+<?php
+// Exportación (CU20): los enlaces llevan los filtros de la página. app.js los actualiza al cambiar el formulario.
+$filtrosExportar = array_intersect_key($old, array_flip(['tipo','desde','hasta','estado','medico_id','especialidad_id','estado_paciente']));
+?>
+<div class="form-actions">
+    <button class="button primary" type="submit">Generar reporte</button>
+    <?php if (!$errors): ?>
+    <a class="button" href="/reportes/exportar?<?= e(http_build_query(['formato'=>'csv'] + $filtrosExportar)) ?>" data-report-export="csv">Descargar Excel</a>
+    <a class="button" href="/reportes/imprimir?<?= e(http_build_query($filtrosExportar)) ?>" data-report-export="imprimir">Descargar PDF</a>
+    <?php endif; ?>
+</div>
 </form></section>
 <?php if (!$errors): ?>
 <p class="report-caption">Período<?= $type==='pacientes' ? ' de altas' : '' ?>: <?= e($filters['desde']) ?> a <?= e($filters['hasta']) ?> · Consulta: <?= e(clinic_datetime($generatedAt)) ?> · Hora de Bolivia</p>
